@@ -1,0 +1,9 @@
+# styles/WC-Styles/SecondPerson.yml
+
+extends: existence
+message: "Use second person ('you') instead of '%s'."
+level: warning
+tokens:
+  - the user
+  - he
+  - she

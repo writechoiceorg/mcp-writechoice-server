@@ -1,0 +1,4 @@
+extends: readability
+message: "Sentence length (%s words) exceeds the maximum of 20 words."
+level: warning
+scope: sentence

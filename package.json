@@ -1,0 +1,46 @@
+{
+  "name": "mcp-vale-server",
+  "version": "1.0.0",
+  "description": "Model Context Protocol server for Vale text linting",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "mcp-vale-server": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "test-server": "tsc && node dist/test.js",
+    "start-all": "./start-servers.sh",
+    "start-js": "node start-servers.js",
+    "start-npm": "concurrently \"npm run http\" \"npm run web\"",
+    "servers": "./start-servers.sh",
+    "http": "node http-server-simple.js",
+    "web": "python3 -m http.server 8080",
+    "test": "jest"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "vale",
+    "text-linting",
+    "ai",
+    "server"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.4.0",
+    "express": "^4.21.2",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.23",
+    "@types/jest": "^29.0.0",
+    "@types/node": "^20.0.0",
+    "concurrently": "^9.2.1",
+    "jest": "^29.0.0",
+    "typescript": "^5.0.0"
+  }
+}

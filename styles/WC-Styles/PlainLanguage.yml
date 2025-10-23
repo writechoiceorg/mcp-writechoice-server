@@ -1,0 +1,9 @@
+# styles/GoogleDevDocs/PlainLanguage.yml
+
+extends: substitution
+message: "Prefer '%s' over '%s' for plain language."
+level: warning
+swap:
+  utilize: use
+  obtain: get
+  prior to: before

@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCP Vale</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .tool-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        
+        .tool-section h3 {
+            color: #2c5282;
+            margin-top: 0;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            margin-bottom: 10px;
+            resize: vertical;
+            transition: border-color 0.2s ease, background-color 0.2s ease;
+        }
+        
+        textarea.drag-over {
+            border-color: #4299e1;
+            background-color: #ebf8ff;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        button {
+            background-color: #4299e1;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        button:hover {
+            background-color: #3182ce;
+        }
+        
+        button:disabled {
+            background-color: #a0aec0;
+            cursor: not-allowed;
+        }
+        
+        .file-upload-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            transition: border-color 0.2s ease;
+        }
+        
+        .file-upload-section:hover {
+            border-color: #4299e1;
+        }
+        
+        .file-info {
+            flex: 1;
+            min-width: 200px;
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .result {
+            background-color: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .error {
+            background-color: #fed7d7;
+            border-color: #fc8181;
+            color: #c53030;
+        }
+        
+        .success {
+            background-color: #c6f6d5;
+            border-color: #68d391;
+            color: #2d7738;
+        }
+        
+        .loading {
+            color: #4299e1;
+            font-style: italic;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-online {
+            background-color: #48bb78;
+        }
+        
+        .status-offline {
+            background-color: #f56565;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 MCP Vale Interface</h1>
+        
+        <div class="tool-section">
+            <h3>📊 Status do Sistema</h3>
+            <button onclick="checkStatus()">Verificar Status</button>
+            <button onclick="checkValeStatus()">Status do Vale</button>
+            <div id="status-result" class="result" style="display:none;"></div>
+        </div>
+        
+        <div class="tool-section">
+            <h3>🔍 Lint de Texto com Vale</h3>
+            
+            <div class="file-upload-section">
+                <input type="file" id="file-upload" accept=".md,.mdx,.txt" onchange="handleFileUpload(event)">
+                <button onclick="document.getElementById('file-upload').click()" style="background-color: #38a169;">
+                    📁 Carregar Arquivo MD/MDX
+                </button>
+                <button onclick="clearText()" style="background-color: #e53e3e;">
+                    🗑️ Limpar Texto
+                </button>
+                <div id="file-info" class="file-info">
+                    Formatos suportados: .md, .mdx, .txt (máximo 1MB)
+                </div>
+            </div>
+            
+            <textarea id="lint-text" placeholder="Cole seu texto aqui para verificar com Vale, carregue um arquivo MD/MDX usando o botão acima, ou arraste um arquivo para esta área...">Este é um exemplo de texto para testar o Vale.
+
+Você pode utilizar esta ferramenta para verificar a qualidade do seu texto. É muito útil para garantir que o conteúdo esteja bem escrito.
+
+Algumas palavras podem estar repetidas repetidas para testar o sistema.</textarea>
+            <input type="text" id="lint-filename" placeholder="Nome do arquivo (opcional, ex: documento.md)" value="documento.md">
+            <button onclick="lintText()">🔍 Fazer Lint</button>
+            <div id="lint-result" class="result" style="display:none;"></div>
+        </div>
+
+    </div>
+
+    <script>
+        // URL do servidor HTTP MCP (quando estiver rodando)
+        const MCP_SERVER_URL = 'http://localhost:3000';
+        let serverRunning = false;
+        
+        // Verificar se o servidor está rodando
+        async function checkServerStatus() {
+            try {
+                const response = await fetch(MCP_SERVER_URL);
+                serverRunning = response.ok;
+                return serverRunning;
+            } catch (error) {
+                serverRunning = false;
+                return false;
+            }
+        }
+        
+        function showResult(elementId, content, isError = false) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = `result ${isError ? 'error' : 'success'}`;
+            element.textContent = content;
+        }
+        
+        function showLoading(elementId) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = 'result loading';
+            element.textContent = '⏳ Processando...';
+        }
+        
+        async function makeAPIRequest(endpoint, method = 'GET', body = null) {
+            const isServerRunning = await checkServerStatus();
+            
+            if (!isServerRunning) {
+                return {
+                    error: true,
+                    message: `❌ Servidor MCP não está rodando!
+                    
+Para usar com dados reais:
+1. Abra um novo terminal
+2. Execute: cd /Users/paulogpd/Documents/GitHub/mcp-server-docs/mcp-google-docs
+3. Execute: npm run http
+4. Aguarde aparecer "🚀 Servidor HTTP rodando na porta 3000"
+5. Recarregue esta página e teste novamente
+
+Ou use o CLI: npm run cli`
+                };
+            }
+            
+            try {
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                };
+                
+                if (body) {
+                    options.body = JSON.stringify(body);
+                }
+                
+                const response = await fetch(MCP_SERVER_URL + endpoint, options);
+                const data = await response.json();
+                
+                if (data.result && data.result.content) {
+                    return {
+                        error: false,
+                        content: data.result.content[0].text
+                    };
+                } else if (data.error) {
+                    return {
+                        error: true,
+                        message: data.error
+                    };
+                } else {
+                    return {
+                        error: false,
+                        content: JSON.stringify(data, null, 2)
+                    };
+                }
+            } catch (error) {
+                return {
+                    error: true,
+                    message: `Erro na requisição: ${error.message}`
+                };
+            }
+        }
+        
+        async function checkStatus() {
+            showLoading('status-result');
+            
+            const isServerRunning = await checkServerStatus();
+            
+            if (isServerRunning) {
+                showResult('status-result', `✅ Status do Sistema:
+
+🚀 Servidor MCP HTTP: Online (porta 3000)
+🔗 Interface Web: Conectada
+📡 Comunicação: Funcionando
+
+✅ Sistema totalmente operacional!
+Agora você pode testar as funcionalidades reais.`);
+            } else {
+                showResult('status-result', `❌ Status do Sistema:
+
+🚀 Servidor MCP HTTP: Offline
+🔗 Interface Web: Modo demonstração
+📡 Comunicação: Indisponível
+
+Para ativar o servidor real:
+1. Abra terminal: cd /Users/paulogpd/Documents/GitHub/mcp-server-docs/mcp-google-docs
+2. Execute: npm run http
+3. Recarregue esta página`, true);
+            }
+        }
+        
+        async function checkValeStatus() {
+            showLoading('status-result');
+            
+            const result = await makeAPIRequest('/vale/status');
+            
+            if (result.error) {
+                showResult('status-result', result.message, true);
+            } else {
+                showResult('status-result', result.content);
+            }
+        }
+        
+        async function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Verificar se é um arquivo suportado
+            const supportedExtensions = ['.md', '.mdx', '.txt'];
+            const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+            
+            if (!supportedExtensions.includes(fileExtension)) {
+                showResult('lint-result', `❌ Formato de arquivo não suportado: ${fileExtension}
+                
+Formatos aceitos: .md, .mdx, .txt`, true);
+                return;
+            }
+            
+            // Verificar tamanho do arquivo (máximo 1MB)
+            if (file.size > 1024 * 1024) {
+                showResult('lint-result', '❌ Arquivo muito grande. Tamanho máximo: 1MB', true);
+                return;
+            }
+            
+            try {
+                const text = await file.text();
+                document.getElementById('lint-text').value = text;
+                document.getElementById('lint-filename').value = file.name;
+                
+                // Mostrar informações do arquivo
+                const fileInfo = document.getElementById('file-info');
+                fileInfo.innerHTML = `✅ <strong>Arquivo carregado:</strong> ${file.name} <span style="color: #666;">(${(file.size / 1024).toFixed(1)} KB)</span>`;
+                fileInfo.style.color = '#38a169';
+                
+                // Limpar resultados anteriores
+                document.getElementById('lint-result').style.display = 'none';
+                
+            } catch (error) {
+                showResult('lint-result', `❌ Erro ao ler o arquivo: ${error.message}`, true);
+            }
+        }
+        
+        function clearText() {
+            document.getElementById('lint-text').value = '';
+            document.getElementById('lint-filename').value = 'documento.md';
+            
+            // Resetar informações do arquivo
+            const fileInfo = document.getElementById('file-info');
+            fileInfo.innerHTML = 'Formatos suportados: .md, .mdx, .txt (máximo 1MB)';
+            fileInfo.style.color = '#666';
+            
+            document.getElementById('lint-result').style.display = 'none';
+            
+            // Limpar o input de arquivo
+            document.getElementById('file-upload').value = '';
+        }
+
+        async function lintText() {
+            const text = document.getElementById('lint-text').value;
+            const fileName = document.getElementById('lint-filename').value || 'documento.md';
+            
+            if (!text.trim()) {
+                showResult('lint-result', 'Por favor, insira um texto para fazer lint ou carregue um arquivo.', true);
+                return;
+            }
+            
+            showLoading('lint-result');
+            
+            const result = await makeAPIRequest('/vale/lint', 'POST', {
+                text: text,
+                fileName: fileName
+            });
+            
+            if (result.error) {
+                showResult('lint-result', result.message, true);
+            } else {
+                showResult('lint-result', result.content);
+            }
+        }
+        
+
+        
+        // Funções para drag-and-drop
+        function setupDragAndDrop() {
+            const textarea = document.getElementById('lint-text');
+            
+            textarea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                textarea.classList.add('drag-over');
+            });
+            
+            textarea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                textarea.classList.remove('drag-over');
+            });
+            
+            textarea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                textarea.classList.remove('drag-over');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    // Simular o evento de upload de arquivo
+                    const event = { target: { files: [files[0]] } };
+                    handleFileUpload(event);
+                }
+            });
+        }
+
+        // Inicializar a página
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🚀 MCP Vale Interface carregada');
+            
+            // Configurar drag-and-drop
+            setupDragAndDrop();
+            
+            // Verificar status do servidor automaticamente
+            const isRunning = await checkServerStatus();
+            
+            if (isRunning) {
+                console.log('✅ Servidor MCP detectado - modo operacional');
+                document.querySelector('h1').innerHTML = '🚀 MCP Vale Interface <span style="color: #48bb78;">●</span>';
+            } else {
+                console.log('⚠️ Servidor MCP não detectado - modo demonstração');
+                document.querySelector('h1').innerHTML = '🚀 MCP Vale Interface <span style="color: #f56565;">●</span>';
+            }
+        });
+    </script>
+</body>
+</html>

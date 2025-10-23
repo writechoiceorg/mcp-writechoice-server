@@ -1,0 +1,8 @@
+# styles/WC-Styles/DescriptionTooLong.yml
+extends: existence
+message: "The 'description' in front matter is too long (more than 160 characters). Current length: %d."
+level: warning
+scope: text.frontmatter
+ignorecase: true
+tokens:
+  - '(?m)^description:\s*(.{161,})$'

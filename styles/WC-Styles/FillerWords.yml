@@ -1,0 +1,14 @@
+# styles/GoogleDevDocs/FillerWords.yml
+# Rule based on 'Forbidden filler: just, simply, obviously, easy, obviously'
+
+extends: existence
+message: "Avoid the patronizing filler word '%s'."
+level: warning
+ignorecase: true
+tokens:
+  - just
+  - simply
+  - obviously
+  - easy
+  - clearly
+  - simple

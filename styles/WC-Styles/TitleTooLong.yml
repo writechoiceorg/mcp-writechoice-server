@@ -1,0 +1,8 @@
+# styles/WC-Styles/TitleTooLong.yml
+extends: existence
+message: "The 'title' in front matter is too long (more than 60 characters). Current length: %d."
+level: error
+scope: text.frontmatter
+ignorecase: true
+tokens:
+  - '(?m)^title:\s*(.{61,})$'
