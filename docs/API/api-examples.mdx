@@ -1,0 +1,245 @@
+# Exemplos de Uso da API MCP Vale Server
+
+## Visão Geral
+A API MCP Vale Server oferece verificação de qualidade de texto usando Vale com múltiplos conjuntos de regras.
+
+## Base URL
+```
+http://localhost:3000
+```
+
+## Endpoints
+
+### 1. Informações da API
+**GET /**
+
+```bash
+curl -X GET http://localhost:3000/
+```
+
+**Resposta:**
+```json
+{
+  "message": "🚀 MCP Vale HTTP API",
+  "status": "online",
+  "endpoints": {
+    "GET /vale/status": "Verifica status do Vale",
+    "POST /vale/lint": "Faz lint de texto { text, fileName? }",
+    "GET /test": "Endpoint de teste"
+  },
+  "example": {
+    "lint_request": {
+      "url": "POST /vale/lint",
+      "body": {
+        "text": "Your text here",
+        "fileName": "document.md"
+      }
+    }
+  }
+}
+```
+
+### 2. Status do Vale
+**GET /vale/status**
+
+```bash
+curl -X GET http://localhost:3000/vale/status
+```
+
+**Resposta (Vale instalado):**
+```json
+{
+  "result": {
+    "content": [
+      {
+        "text": "Vale Installation Status:\n\n✅ Vale is installed\nVersion: vale 3.0.7\nConfig Path: /path/to/vale.ini\n\nAvailable rules:\n- Vale (basic rules)\n- Google (style guide)\n- proselint (prose checks)\n- alex (inclusive language)\n- WC-Styles (max 20 words per sentence)\n- Aspect (spell check)"
+      }
+    ]
+  }
+}
+```
+
+**Resposta (Vale não instalado):**
+```json
+{
+  "result": {
+    "content": [
+      {
+        "text": "Vale Installation Status:\n\n❌ Vale is not installed or not accessible\nError: Vale is not installed or not found in PATH\n\nTo install Vale:\n- macOS: brew install vale\n- Linux: Download from https://github.com/errata-ai/vale/releases\n- Windows: choco install vale"
+      }
+    ]
+  }
+}
+```
+
+### 3. Análise de Texto (Lint)
+**POST /vale/lint**
+
+#### Exemplo Básico
+```bash
+curl -X POST http://localhost:3000/vale/lint \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "This is a sample text for analysis.",
+    "fileName": "document.md"
+  }'
+```
+
+#### Exemplo com Texto Problemático
+```bash
+curl -X POST http://localhost:3000/vale/lint \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Their are many problems in this sentance and its way to long for good readability and understanding by readers who might struggle with complex sentences.",
+    "fileName": "test.md"
+  }'
+```
+
+**Resposta (com problemas encontrados):**
+```json
+{
+  "result": {
+    "content": [
+      {
+        "text": "Vale Lint Results for test.md\nTotal Issues: 4\n\n🚨 ERRORS (2):\n  Line 1: 'Their' is incorrect. Use 'There' instead. (Aspect.Spelling)\n  Line 1: 'sentance' is incorrect. Use 'sentence' instead. (Aspect.Spelling)\n\n⚠️ WARNINGS (1):\n  Line 1: Consider removing 'way'. (proselint.Hedging)\n\n💡 SUGGESTIONS (1):\n  Line 1: Try to keep sentences under 20 words. (WC-Styles.SentenceLength)\n\n📊 Analysis Summary:\n- Text analyzed successfully\n- Checked rules: Vale, Google, proselint, alex, WC-Styles, Aspect\n- Found 4 suggestions for improvement"
+      }
+    ]
+  }
+}
+```
+
+#### Exemplo com Texto Limpo
+```bash
+curl -X POST http://localhost:3000/vale/lint \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "This is clean, well-written text that follows style guidelines.",
+    "fileName": "clean.md"
+  }'
+```
+
+**Resposta (sem problemas):**
+```json
+{
+  "result": {
+    "content": [
+      {
+        "text": "Vale Lint Results for clean.md\nTotal Issues: 0\n\n✅ No issues found! Your text follows all Vale style guidelines.\n\n📊 Analysis Summary:\n- Text analyzed successfully\n- Checked rules: Vale, Google, proselint, alex, WC-Styles, Aspect\n- Text quality: Excellent!"
+      }
+    ]
+  }
+}
+```
+
+#### Exemplo sem fileName (usa padrão)
+```bash
+curl -X POST http://localhost:3000/vale/lint \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Text without filename parameter."
+  }'
+```
+
+### 4. Teste de Conectividade
+**GET /test**
+
+```bash
+curl -X GET http://localhost:3000/test
+```
+
+**Resposta:**
+```json
+{
+  "message": "✅ Server is working!",
+  "timestamp": "2025-10-24T10:30:00.000Z",
+  "vale_config": "/path/to/vale.ini"
+}
+```
+
+## Códigos de Status HTTP
+
+- **200 OK**: Requisição processada com sucesso
+- **400 Bad Request**: Parâmetros inválidos (ex: texto não fornecido)
+- **500 Internal Server Error**: Erro interno do servidor
+
+## Erros Comuns
+
+### Texto não fornecido
+```bash
+curl -X POST http://localhost:3000/vale/lint \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+**Resposta:**
+```json
+{
+  "error": "Text is required"
+}
+```
+
+### Vale não instalado
+Se o Vale não estiver instalado, a análise retornará erro 500:
+
+```json
+{
+  "error": "Failed to run Vale lint: Vale execution failed: ..."
+}
+```
+
+## Conjuntos de Regras Suportados
+
+1. **Vale**: Regras básicas do Vale
+2. **Google**: Google Style Guide
+3. **proselint**: Verificações de prosa (clareza, concisão)
+4. **alex**: Linguagem inclusiva e não ofensiva
+5. **WC-Styles**: Regras personalizadas (máx. 20 palavras por frase)
+6. **Aspect**: Verificação ortográfica
+
+## Usando com JavaScript/Node.js
+
+```javascript
+const axios = require('axios');
+
+async function lintText(text, fileName = 'document.md') {
+  try {
+    const response = await axios.post('http://localhost:3000/vale/lint', {
+      text,
+      fileName
+    });
+    
+    console.log(response.data.result.content[0].text);
+  } catch (error) {
+    console.error('Error:', error.response?.data?.error || error.message);
+  }
+}
+
+// Uso
+lintText('This is a test sentence.');
+```
+
+## Usando com Python
+
+```python
+import requests
+import json
+
+def lint_text(text, file_name='document.md'):
+    url = 'http://localhost:3000/vale/lint'
+    data = {
+        'text': text,
+        'fileName': file_name
+    }
+    
+    try:
+        response = requests.post(url, json=data)
+        response.raise_for_status()
+        
+        result = response.json()
+        print(result['result']['content'][0]['text'])
+    except requests.exceptions.RequestException as e:
+        print(f'Error: {e}')
+
+# Uso
+lint_text('This is a test sentence.')
+```

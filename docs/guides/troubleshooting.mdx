@@ -1,0 +1,619 @@
+---
+title: "Troubleshooting"
+description: "Resolva problemas comuns do MCP Vale Server rapidamente"
+date: "2025-10-24"
+tags: ["troubleshooting", "problemas", "debug", "solução", "ajuda"]
+---
+
+# 🔍 Troubleshooting
+
+Este guia ajuda a resolver os problemas mais comuns do MCP Vale Server. Organize por categoria para encontrar soluções rapidamente.
+
+## 🚨 Problemas de Instalação
+
+### Vale não encontrado
+
+**Sintomas:**
+- Erro: "Vale is not installed or not found in PATH"
+- Comando `vale --version` falha
+
+**Soluções:**
+
+import { Tabs, Tab } from '@/components/ui/tabs'
+
+<Tabs defaultValue="macos">
+  <Tab value="macos" label="macOS">
+    ```bash
+    # Verificar se Homebrew está instalado
+    brew --version
+    
+    # Instalar Vale
+    brew install vale
+    
+    # Verificar instalação
+    vale --version
+    
+    # Se ainda não funcionar, adicionar ao PATH
+    echo 'export PATH="/opt/homebrew/bin:$PATH"' >> ~/.zshrc
+    source ~/.zshrc
+    ```
+  </Tab>
+  <Tab value="ubuntu" label="Ubuntu/Debian">
+    ```bash
+    # Método 1: Repositório oficial
+    sudo apt update
+    sudo apt install vale
+    
+    # Método 2: Download direto
+    wget https://github.com/errata-ai/vale/releases/latest/download/vale_Linux_64-bit.tar.gz
+    tar -xzf vale_Linux_64-bit.tar.gz
+    sudo mv vale /usr/local/bin/
+    
+    # Verificar
+    vale --version
+    ```
+  </Tab>
+  <Tab value="windows" label="Windows">
+    ```bash
+    # Com Chocolatey
+    choco install vale
+    
+    # Com Scoop
+    scoop install vale
+    
+    # Download manual
+    # Baixe de: https://github.com/errata-ai/vale/releases
+    # Extraia e adicione ao PATH
+    ```
+  </Tab>
+</Tabs>
+
+### Node.js não encontrado
+
+**Sintomas:**
+- Erro: "node: command not found"
+- `npm` não funciona
+
+**Soluções:**
+
+```bash
+# Verificar versão do Node.js
+node --version  # Deve ser v18+
+
+# Instalar Node.js via nvm (recomendado)
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+source ~/.bashrc
+nvm install 18
+nvm use 18
+
+# Ou via gerenciador de pacotes
+# macOS: brew install node
+# Ubuntu: sudo apt install nodejs npm
+```
+
+### Dependências não instaladas
+
+**Sintomas:**
+- Erro: "Cannot find module"
+- `npm start` falha
+
+**Soluções:**
+
+```bash
+# Limpar cache e reinstalar
+rm -rf node_modules package-lock.json
+npm cache clean --force
+npm install
+
+# Verificar versões
+npm --version
+node --version
+
+# Recompilar
+npm run build
+```
+
+## ⚙️ Problemas de Configuração
+
+### Arquivo vale.ini não encontrado
+
+**Sintomas:**
+- Erro: "Config file not found"
+- Vale executa mas não aplica regras
+
+**Diagnóstico:**
+
+```bash
+# Verificar se o arquivo existe
+ls -la vale.ini
+
+# Verificar caminho absoluto
+pwd
+```
+
+**Soluções:**
+
+```bash
+# Certificar que está no diretório correto
+cd /caminho/para/mcp-writechoice-server
+
+# Verificar conteúdo do vale.ini
+cat vale.ini
+
+# Recriar se necessário
+cp vale.ini.example vale.ini  # se existir
+```
+
+### Estilos não carregados
+
+**Sintomas:**
+- Vale executa mas não encontra problemas óbvios
+- Mensagem sobre estilos não encontrados
+
+**Diagnóstico:**
+
+```bash
+# Verificar estrutura de pastas
+ls -la styles/
+
+# Testar Vale diretamente
+vale --config=vale.ini exemplo-teste.md
+```
+
+**Soluções:**
+
+```bash
+# Verificar se pastas de estilos existem
+ls styles/Google styles/proselint styles/alex
+
+# Recriar estilos se necessário
+mkdir -p styles/{Google,proselint,alex,WC-Styles,Aspect}
+
+# Verificar permissões
+chmod -R 755 styles/
+```
+
+### Configuração MCP incorreta
+
+**Sintomas:**
+- Claude Desktop não mostra ferramentas do Vale
+- Erro de conexão MCP
+
+**Diagnóstico:**
+
+```bash
+# Verificar compilação
+npm run build
+ls -la dist/
+
+# Testar servidor MCP manualmente
+node dist/index.js
+# Deve mostrar: "MCP Vale server running on stdio"
+```
+
+**Soluções:**
+
+1. **Verificar caminhos absolutos** no config do Claude:
+
+```json
+{
+  "mcpServers": {
+    "mcp-vale-server": {
+      "command": "node",
+      "args": ["/caminho/completo/para/dist/index.js"],
+      "env": {
+        "VALE_CONFIG_PATH": "/caminho/completo/para/vale.ini"
+      }
+    }
+  }
+}
+```
+
+2. **Testar com caminho explícito:**
+
+```bash
+# Obter caminho absoluto
+pwd
+# Use esse caminho completo no config
+```
+
+3. **Verificar permissões:**
+
+```bash
+chmod +x dist/index.js
+```
+
+## 🌐 Problemas da API HTTP
+
+### Servidor não inicia
+
+**Sintomas:**
+- `npm run http` falha
+- Erro de porta em uso
+
+**Diagnóstico:**
+
+```bash
+# Verificar se porta está em uso
+lsof -i :3000
+netstat -tulpn | grep 3000
+
+# Verificar logs de erro
+npm run http 2>&1 | tee server.log
+```
+
+**Soluções:**
+
+```bash
+# Usar porta alternativa
+PORT=3001 npm run http
+
+# Matar processo na porta 3000
+kill -9 $(lsof -ti:3000)
+
+# Verificar se Express está instalado
+npm list express
+```
+
+### CORS errors
+
+**Sintomas:**
+- Erro de CORS no navegador
+- Interface web não consegue acessar API
+
+**Soluções:**
+
+Verificar configuração CORS no `http-server-simple.js`:
+
+```javascript
+// Deve conter estas headers
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+```
+
+### Requisições falham
+
+**Sintomas:**
+- Timeout em requests
+- Respostas vazias
+
+**Diagnóstico:**
+
+```bash
+# Testar conectividade básica
+curl http://localhost:3000/test
+
+# Testar com verbose
+curl -v http://localhost:3000/vale/status
+
+# Verificar logs do servidor
+npm run http | tee -a debug.log
+```
+
+## 🤖 Problemas do Protocolo MCP
+
+### Claude Desktop não reconhece servidor
+
+**Sintomas:**
+- Ferramentas não aparecem no Claude
+- Erro de conexão no log
+
+**Diagnóstico:**
+
+```bash
+# Verificar se arquivo de config existe
+ls -la ~/Library/Application\ Support/Claude/claude_desktop_config.json  # macOS
+ls -la ~/.config/Claude/claude_desktop_config.json  # Linux
+
+# Validar JSON
+cat claude_desktop_config.json | jq .
+```
+
+**Soluções:**
+
+1. **Recriar configuração:**
+
+```json
+{
+  "mcpServers": {
+    "mcp-vale-server": {
+      "command": "node",
+      "args": ["/Users/seu-usuario/caminho/para/mcp-writechoice-server/dist/index.js"],
+      "env": {
+        "VALE_CONFIG_PATH": "/Users/seu-usuario/caminho/para/mcp-writechoice-server/vale.ini"
+      }
+    }
+  }
+}
+```
+
+2. **Verificar permissões:**
+
+```bash
+chmod 644 claude_desktop_config.json
+```
+
+3. **Reiniciar Claude completamente:**
+   - Fechar aplicação
+   - Aguardar 10 segundos
+   - Reabrir
+
+### Ferramentas aparecem mas falham
+
+**Sintomas:**
+- Claude mostra ferramentas disponíveis
+- Execução resulta em erro
+
+**Diagnóstico:**
+
+```bash
+# Testar servidor MCP diretamente
+echo '{"method":"tools/list","id":1}' | node dist/index.js
+
+# Verificar logs do Claude Desktop
+tail -f ~/Library/Logs/Claude/claude-desktop.log  # macOS
+```
+
+**Soluções:**
+
+1. **Recompilar projeto:**
+
+```bash
+npm run build
+```
+
+2. **Verificar variáveis de ambiente:**
+
+```bash
+# Testar com env explícito
+VALE_CONFIG_PATH=./vale.ini node dist/index.js
+```
+
+3. **Verificar compatibilidade MCP:**
+
+```bash
+npm list @modelcontextprotocol/sdk
+# Deve ser versão compatível
+```
+
+## 📱 Problemas da Interface Web
+
+### Página não carrega
+
+**Sintomas:**
+- 404 ao acessar interface web
+- Página em branco
+
+**Diagnóstico:**
+
+```bash
+# Verificar se servidor web está rodando
+curl http://localhost:8080/
+
+# Verificar se arquivo existe
+ls -la web-interface.html
+```
+
+**Soluções:**
+
+```bash
+# Iniciar servidor web
+npm run web
+
+# Ou usar Python
+python3 -m http.server 8080
+
+# Acessar URL correta
+open http://localhost:8080/web-interface.html
+```
+
+### Interface carrega mas análise falha
+
+**Sintomas:**
+- Interface aparece normalmente
+- Botão "Analisar" não funciona
+
+**Diagnóstico:**
+
+```bash
+# Verificar se API está rodando
+curl http://localhost:3000/test
+
+# Verificar console do navegador (F12)
+# Procurar por erros em vermelho
+```
+
+**Soluções:**
+
+1. **Iniciar ambos servidores:**
+
+```bash
+npm run start-npm
+# Ou separadamente:
+npm run http    # Terminal 1
+npm run web     # Terminal 2
+```
+
+2. **Verificar CORS** (ver seção anterior)
+
+3. **Testar API diretamente:**
+
+```bash
+curl -X POST http://localhost:3000/vale/lint \
+  -H "Content-Type: application/json" \
+  -d '{"text":"test"}'
+```
+
+## 🐛 Debug Avançado
+
+### Habilitando Logs Detalhados
+
+```bash
+# Definir nível de log
+export LOG_LEVEL=debug
+
+# Executar com logs detalhados
+DEBUG=* npm run http
+
+# Ou para MCP
+DEBUG=mcp:* node dist/index.js
+```
+
+### Verificação Sistemática
+
+Use este checklist para diagnóstico completo:
+
+```bash
+#!/bin/bash
+echo "=== Diagnóstico do MCP Vale Server ==="
+
+echo "1. Verificando Node.js..."
+node --version || echo "❌ Node.js não instalado"
+
+echo "2. Verificando npm..."
+npm --version || echo "❌ npm não instalado"
+
+echo "3. Verificando Vale..."
+vale --version || echo "❌ Vale não instalado"
+
+echo "4. Verificando arquivos de configuração..."
+[ -f vale.ini ] && echo "✅ vale.ini encontrado" || echo "❌ vale.ini não encontrado"
+[ -d styles ] && echo "✅ Pasta styles encontrada" || echo "❌ Pasta styles não encontrada"
+[ -d dist ] && echo "✅ Pasta dist encontrada" || echo "❌ Projeto não compilado"
+
+echo "5. Verificando dependências..."
+npm list --depth=0 2>/dev/null | grep -E "(express|@modelcontextprotocol)" || echo "❌ Dependências faltando"
+
+echo "6. Testando Vale diretamente..."
+echo "This is a test." > test.md
+vale --config=vale.ini test.md && echo "✅ Vale funcionando" || echo "❌ Vale com problemas"
+rm test.md
+
+echo "7. Testando servidor MCP..."
+timeout 5s node dist/index.js >/dev/null 2>&1 && echo "✅ Servidor MCP inicia" || echo "❌ Servidor MCP falha"
+
+echo "=== Diagnóstico concluído ==="
+```
+
+### Arquivo de Log Personalizado
+
+```typescript
+// src/logger.ts
+import fs from 'fs';
+import path from 'path';
+
+class Logger {
+  private logFile: string;
+  
+  constructor() {
+    this.logFile = path.join(process.cwd(), 'debug.log');
+  }
+  
+  log(level: string, message: string, data?: any) {
+    const timestamp = new Date().toISOString();
+    const logEntry = `[${timestamp}] ${level}: ${message}`;
+    
+    console.log(logEntry, data || '');
+    
+    // Salvar em arquivo
+    fs.appendFileSync(this.logFile, logEntry + '\n');
+  }
+  
+  error(message: string, error?: any) {
+    this.log('ERROR', message, error);
+  }
+  
+  warn(message: string, data?: any) {
+    this.log('WARN', message, data);
+  }
+  
+  info(message: string, data?: any) {
+    this.log('INFO', message, data);
+  }
+  
+  debug(message: string, data?: any) {
+    if (process.env.DEBUG || process.env.LOG_LEVEL === 'debug') {
+      this.log('DEBUG', message, data);
+    }
+  }
+}
+
+export const logger = new Logger();
+```
+
+## 🆘 Quando Buscar Ajuda
+
+Se os problemas persistem após seguir este guia:
+
+### 1. Coleta de Informações
+
+Antes de reportar um problema, colete:
+
+```bash
+# Informações do sistema
+uname -a                    # Sistema operacional
+node --version             # Versão do Node.js
+npm --version              # Versão do npm
+vale --version             # Versão do Vale
+
+# Status do projeto
+git status                 # Status do git
+npm list --depth=0         # Dependências instaladas
+ls -la dist/              # Arquivos compilados
+
+# Logs de erro
+tail -n 50 debug.log      # Últimos logs
+```
+
+### 2. Onde Buscar Ajuda
+
+- 📚 [Documentação do Vale](https://vale.sh/docs/)
+- 🐛 [Issues no GitHub](https://github.com/writechoiceorg/mcp-writechoice-server/issues)
+- 💬 [Discussões](https://github.com/writechoiceorg/mcp-writechoice-server/discussions)
+- 🔧 [MCP Documentation](https://modelcontextprotocol.io/)
+
+### 3. Como Reportar Problemas
+
+Inclua sempre:
+
+1. **Descrição clara** do problema
+2. **Passos para reproduzir**
+3. **Mensagens de erro** completas
+4. **Informações do sistema** (coletadas acima)
+5. **Configuração utilizada** (vale.ini, config MCP)
+
+## ✅ Prevenção de Problemas
+
+### Verificações Regulares
+
+```bash
+# Script de verificação semanal
+#!/bin/bash
+echo "Verificando atualizações..."
+npm outdated
+vale --version
+
+echo "Verificando integridade..."
+npm run build
+npm run test  # se houver testes
+
+echo "Limpando cache..."
+npm cache clean --force
+```
+
+### Backup de Configurações
+
+```bash
+# Backup automático
+cp vale.ini vale.ini.backup.$(date +%Y%m%d)
+cp claude_desktop_config.json claude_desktop_config.json.backup.$(date +%Y%m%d)
+```

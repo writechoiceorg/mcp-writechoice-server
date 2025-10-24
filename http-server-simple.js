@@ -142,7 +142,7 @@ async function checkValeStatus() {
 // Página inicial com documentação
 app.get('/', (req, res) => {
   res.json({
-    message: '🚀 MCP Google Docs + Vale HTTP API',
+    message: '🚀 MCP Vale HTTP API',
     status: 'online',
     endpoints: {
       'GET /vale/status': 'Verifica status do Vale',

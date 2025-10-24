@@ -1,0 +1,569 @@
+---
+title: "Configuração Avançada"
+description: "Personalize regras do Vale e configure o servidor para suas necessidades específicas"
+date: "2025-10-24"
+tags: ["configuração", "vale", "regras", "personalização", "avançado"]
+---
+
+# ⚙️ Configuração Avançada
+
+Este guia mostra como personalizar o MCP Vale Server para suas necessidades específicas, incluindo configuração de regras, estilos customizados e otimizações.
+
+## 📁 Estrutura de Configuração
+
+```
+mcp-writechoice-server/
+├── vale.ini                 # Configuração principal do Vale
+├── styles/                  # Estilos de verificação
+│   ├── Google/             # Google Style Guide
+│   ├── proselint/          # Verificações de prosa
+│   ├── alex/               # Linguagem inclusiva
+│   ├── WC-Styles/          # Regras personalizadas
+│   └── Aspect/             # Verificação ortográfica
+├── temp/                   # Arquivos temporários
+└── src/                    # Código fonte do servidor
+```
+
+## 🔧 Configuração do Vale (vale.ini)
+
+### Arquivo Principal
+
+O arquivo `vale.ini` controla todo o comportamento do Vale:
+
+```ini
+# MinAlertLevel = suggestion
+StylesPath = styles
+
+# Formatos de arquivo suportados
+[formats]
+mdx = md
+
+# Configuração global
+[*]
+# Estilos habilitados (ordem importa!)
+BasedOnStyles = Vale, Google, proselint, alex, WC-Styles, Aspect
+
+# Regras específicas desabilitadas
+Google.FirstPerson = NO
+Google.Will = NO
+Google.Headings = NO
+
+# Configurações de arquivo específicas
+[*.md]
+# Regras específicas para Markdown
+Google.Headings = YES
+
+[*.rst]
+# Configurações para reStructuredText
+BasedOnStyles = Vale, Google, proselint
+
+[*.{html,htm}]
+# Configurações para HTML
+BasedOnStyles = Vale, Google
+```
+
+### Níveis de Alerta
+
+```ini
+# Controla quais tipos de problemas são reportados
+MinAlertLevel = suggestion  # suggestion, warning, error
+```
+
+- **`suggestion`**: Mostra tudo (padrão)
+- **`warning`**: Apenas warnings e errors
+- **`error`**: Apenas errors críticos
+
+### Configurações por Tipo de Arquivo
+
+```ini
+# Documentação técnica
+[*.{md,mdx}]
+BasedOnStyles = Vale, Google, proselint, alex, WC-Styles, Aspect
+Google.FirstPerson = NO
+WC-Styles.SentenceLength = YES
+
+# Blog posts e artigos
+[*.{blog,article}.md]
+BasedOnStyles = Vale, Google, proselint, alex
+Google.FirstPerson = YES
+proselint.Hedging = NO
+
+# Emails e comunicação interna
+[*.{email,memo}.md]
+BasedOnStyles = Vale, alex
+Google.We = NO
+```
+
+## 🎨 Estilos Disponíveis
+
+### 1. Vale (Básico)
+
+Regras fundamentais do Vale incluídas por padrão.
+
+### 2. Google Style Guide
+
+```ini
+# Configurações do Google Style
+[*]
+Google.FirstPerson = NO      # Evitar "I", "we", etc.
+Google.Will = NO             # Evitar tempo futuro com "will"
+Google.Passive = YES         # Detectar voz passiva
+Google.WordList = YES        # Palavras preferidas/evitadas
+Google.Acronyms = YES        # Formato de acrônimos
+```
+
+### 3. proselint
+
+Verificações de qualidade de prosa:
+
+```ini
+[*]
+proselint.Hedging = YES          # "kind of", "sort of"
+proselint.Jargon = YES           # Jargão técnico
+proselint.Redundancy = YES       # Redundâncias
+proselint.Skunked = YES          # Palavras controversas
+proselint.Typography = YES       # Tipografia correta
+```
+
+### 4. alex
+
+Linguagem inclusiva e não ofensiva:
+
+```ini
+[*]
+alex.Condescending = YES    # Linguagem condescendente
+alex.Gendered = YES         # Linguagem de gênero
+alex.LGBTQ = YES           # Terminologia LGBTQ+
+alex.Race = YES            # Terminologia racial
+alex.ProfanityLikely = YES # Possível profanidade
+```
+
+### 5. WC-Styles (Personalizado)
+
+Regras específicas do WriteChoice:
+
+```ini
+[*]
+WC-Styles.SentenceLength = YES      # Máx 20 palavras por frase
+WC-Styles.PlainLanguage = YES       # Linguagem simples
+WC-Styles.FillerWords = YES         # Palavras de preenchimento
+WC-Styles.SecondPerson = YES        # Uso de "você"
+```
+
+### 6. Aspect
+
+Verificação ortográfica:
+
+```ini
+[*]
+Aspect.Spelling = YES       # Verificação ortográfica
+```
+
+## 🔨 Criando Regras Personalizadas
+
+### Estrutura de uma Regra
+
+Crie um arquivo YAML na pasta `styles/SeuEstilo/`:
+
+```yaml
+# styles/MeuEstilo/MinhaRegra.yml
+extends: existence
+message: "Evite usar '%s'."
+level: warning
+tokens:
+  - obviously
+  - basically
+  - simply
+  - just
+```
+
+### Tipos de Regras
+
+#### 1. Existence (Existência)
+
+Detecta palavras ou frases específicas:
+
+```yaml
+# styles/MeuEstilo/PalavrasEvitadas.yml
+extends: existence
+message: "Considere uma alternativa para '%s'."
+level: suggestion
+ignorecase: true
+tokens:
+  - utilize  # prefira "use"
+  - leverage # prefira "use"
+  - paradigm # seja mais específico
+```
+
+#### 2. Substitution (Substituição)
+
+Sugere substituições:
+
+```yaml
+# styles/MeuEstilo/Substituicoes.yml
+extends: substitution
+message: "Use '%s' em vez de '%s'."
+level: error
+ignorecase: true
+swap:
+  alot: a lot
+  recieve: receive
+  seperate: separate
+```
+
+#### 3. Occurrence (Ocorrência)
+
+Controla frequência de palavras:
+
+```yaml
+# styles/MeuEstilo/Repeticao.yml
+extends: occurrence
+message: "'%s' aparece muito frequentemente."
+level: warning
+max: 3
+tokens:
+  - very
+  - really
+  - quite
+```
+
+#### 4. Repetition (Repetição)
+
+Detecta palavras repetidas:
+
+```yaml
+# styles/MeuEstilo/PalavrasRepetidas.yml
+extends: repetition
+message: "Palavra '%s' repetida."
+level: warning
+alpha: true
+tokens:
+  - '\b(\w+)\s+\1\b'
+```
+
+#### 5. Consistency (Consistência)
+
+Garante uso consistente:
+
+```yaml
+# styles/MeuEstilo/Consistencia.yml
+extends: consistency
+message: "Use '%s' consistentemente."
+level: warning
+either:
+  advisor: adviser
+  centre: center
+  grey: gray
+```
+
+#### 6. Conditional (Condicional)
+
+Regras baseadas em contexto:
+
+```yaml
+# styles/MeuEstilo/Condicional.yml
+extends: conditional
+message: "Use 'an' antes de '%s'."
+level: error
+first: '\ba\s'
+second: '(?i)hour|honest|honor'
+exceptions:
+  - "a historical"
+  - "a hypothesis"
+```
+
+### Exemplo Completo: Estilo Corporativo
+
+```yaml
+# styles/Corporativo/Jargao.yml
+extends: substitution
+message: "Use linguagem mais clara: '%s' em vez de '%s'."
+level: warning
+ignorecase: true
+swap:
+  leverage: use
+  utilize: use
+  facilitate: help
+  implement: do
+  synergy: cooperation
+  paradigm: model
+  ecosystem: environment
+  best practice: good method
+  game changer: important change
+  deep dive: detailed analysis
+```
+
+```yaml
+# styles/Corporativo/Clareza.yml
+extends: existence
+message: "Evite jargão corporativo: '%s'."
+level: suggestion
+ignorecase: true
+tokens:
+  - "low-hanging fruit"
+  - "think outside the box"
+  - "circle back"
+  - "touch base"
+  - "move the needle"
+  - "drill down"
+```
+
+## 🎯 Configurações Específicas por Contexto
+
+### Documentação Técnica
+
+```ini
+[*.{api,technical}.md]
+BasedOnStyles = Vale, Google, WC-Styles, Aspect
+# Permitir primeira pessoa em tutoriais
+Google.FirstPerson = NO
+# Sentences mais longas são OK para documentação técnica
+WC-Styles.SentenceLength = NO
+# Permitir jargão técnico
+proselint.Jargon = NO
+```
+
+### Marketing e Vendas
+
+```ini
+[*.{marketing,sales}.md]
+BasedOnStyles = Vale, proselint, alex, Aspect
+# Permitir linguagem persuasiva
+proselint.Hedging = NO
+# Linguagem inclusiva é crítica
+alex.Gendered = YES
+alex.Race = YES
+```
+
+### Comunicação Interna
+
+```ini
+[*.{memo,internal}.md]
+BasedOnStyles = Vale, alex, Aspect
+# Comunicação mais relaxada
+Google.Contractions = NO
+# Foco em inclusividade
+alex.Condescending = YES
+```
+
+## 🔍 Configuração de Vocabulário
+
+### Arquivo de Vocabulário
+
+Crie `styles/SeuEstilo/vocab.txt`:
+
+```
+# Palavras aceitas (uma por linha)
+API
+JSON
+REST
+GraphQL
+microservices
+frontend
+backend
+DevOps
+```
+
+### Uso em Regras
+
+```yaml
+# styles/SeuEstilo/Vocabulario.yml
+extends: spelling
+message: "Palavra não reconhecida: '%s'."
+level: error
+filters:
+  - vocabulary
+```
+
+## 🚀 Otimizações de Performance
+
+### Configuração do Servidor
+
+```typescript
+// src/vale-service.ts - Configurações customizadas
+export class ValeService {
+  private valeConfigPath: string;
+  private cacheResults: boolean = true;
+  private maxCacheSize: number = 100;
+  
+  constructor(configPath: string, options?: {
+    cache?: boolean;
+    maxCacheSize?: number;
+  }) {
+    this.valeConfigPath = configPath;
+    this.cacheResults = options?.cache ?? true;
+    this.maxCacheSize = options?.maxCacheSize ?? 100;
+  }
+}
+```
+
+### Cache de Resultados
+
+```typescript
+// Implementação de cache simples
+private resultCache = new Map<string, any>();
+
+private getCacheKey(text: string, fileName: string): string {
+  return `${fileName}:${text.slice(0, 100)}`;
+}
+
+async lintTextWithVale(text: string, fileName: string) {
+  const cacheKey = this.getCacheKey(text, fileName);
+  
+  if (this.cacheResults && this.resultCache.has(cacheKey)) {
+    return this.resultCache.get(cacheKey);
+  }
+  
+  const result = await this.performLinting(text, fileName);
+  
+  if (this.cacheResults) {
+    this.resultCache.set(cacheKey, result);
+    // Limitar tamanho do cache
+    if (this.resultCache.size > this.maxCacheSize) {
+      const firstKey = this.resultCache.keys().next().value;
+      this.resultCache.delete(firstKey);
+    }
+  }
+  
+  return result;
+}
+```
+
+## 📊 Configuração de Logging
+
+### Níveis de Log
+
+```typescript
+// src/index.ts
+const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
+
+enum LogLevel {
+  ERROR = 0,
+  WARN = 1,
+  INFO = 2,
+  DEBUG = 3
+}
+
+function log(level: LogLevel, message: string, data?: any) {
+  const levels = ['ERROR', 'WARN', 'INFO', 'DEBUG'];
+  if (level <= LogLevel[LOG_LEVEL.toUpperCase() as keyof typeof LogLevel]) {
+    console.error(`[${levels[level]}] ${message}`, data || '');
+  }
+}
+```
+
+### Variáveis de Ambiente
+
+```bash
+# .env
+LOG_LEVEL=debug              # error, warn, info, debug
+VALE_CONFIG_PATH=./vale.ini  # Caminho do config
+TEMP_DIR=./temp             # Diretório temporário
+CACHE_ENABLED=true          # Habilitar cache
+MAX_CACHE_SIZE=100          # Tamanho máximo do cache
+```
+
+## 🔧 Configuração de Deployment
+
+### Docker
+
+```dockerfile
+# Dockerfile.production
+FROM node:18-alpine
+
+# Instalar Vale
+RUN wget -O- https://github.com/errata-ai/vale/releases/latest/download/vale_Linux_64-bit.tar.gz | tar -xz -C /usr/local/bin
+
+WORKDIR /app
+
+# Copiar configurações
+COPY vale.ini ./
+COPY styles/ ./styles/
+COPY package*.json ./
+
+# Instalar dependências
+RUN npm ci --only=production
+
+# Copiar código compilado
+COPY dist/ ./dist/
+
+# Configurar usuário não-root
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nextjs -u 1001
+USER nextjs
+
+EXPOSE 3000
+
+CMD ["npm", "start"]
+```
+
+### Docker Compose
+
+```yaml
+# docker-compose.yml
+version: '3.8'
+
+services:
+  mcp-vale-server:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - LOG_LEVEL=info
+      - CACHE_ENABLED=true
+    volumes:
+      - ./styles:/app/styles:ro
+      - ./vale.ini:/app/vale.ini:ro
+    restart: unless-stopped
+    
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - mcp-vale-server
+```
+
+## 📈 Monitoramento e Métricas
+
+### Configuração de Health Check
+
+```typescript
+// src/health.ts
+export interface HealthStatus {
+  status: 'healthy' | 'unhealthy';
+  version: string;
+  uptime: number;
+  vale: {
+    installed: boolean;
+    version?: string;
+    configPath: string;
+  };
+  memory: {
+    used: number;
+    total: number;
+  };
+}
+
+export async function getHealthStatus(): Promise<HealthStatus> {
+  const valeStatus = await checkValeInstallation();
+  const memUsage = process.memoryUsage();
+  
+  return {
+    status: valeStatus.installed ? 'healthy' : 'unhealthy',
+    version: process.env.npm_package_version || '1.0.0',
+    uptime: process.uptime(),
+    vale: {
+      installed: valeStatus.installed,
+      version: valeStatus.version,
+      configPath: process.env.VALE_CONFIG_PATH || './vale.ini'
+    },
+    memory: {
+      used: memUsage.heapUsed,
+      total: memUsage.heapTotal
+    }
+  };
+}
+```

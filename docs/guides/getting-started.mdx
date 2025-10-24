@@ -1,0 +1,178 @@
+---
+title: "Guia de Início Rápido"
+description: "Comece a usar o MCP Vale Server em minutos"
+date: "2025-10-24"
+tags: ["início", "instalação", "setup"]
+---
+
+# 🚀 Guia de Início Rápido
+
+Bem-vindo ao **MCP Vale Server**! Este guia vai te ajudar a configurar e usar o servidor de verificação de texto em poucos minutos.
+
+## O que é o MCP Vale Server?
+
+O MCP Vale Server é uma ferramenta poderosa que combina:
+- 📝 **Vale** - Verificador de estilo e qualidade de texto
+- 🤖 **Model Context Protocol (MCP)** - Integração com assistentes IA
+- 🌐 **API HTTP** - Interface web e programática
+- 📋 **Múltiplos estilos** - Google, proselint, alex, WC-Styles, Aspect
+
+## Pré-requisitos
+
+Antes de começar, certifique-se de ter:
+
+```bash
+# Node.js (versão 18 ou superior)
+node --version
+
+# npm ou yarn
+npm --version
+```
+
+## Instalação Rápida
+
+### 1. Clone o Repositório
+
+```bash
+git clone https://github.com/writechoiceorg/mcp-writechoice-server.git
+cd mcp-writechoice-server
+```
+
+### 2. Instale as Dependências
+
+```bash
+npm install
+```
+
+### 3. Instale o Vale
+
+import { Tabs, Tab } from '@/components/ui/tabs'
+
+<Tabs defaultValue="macos">
+  <Tab value="macos" label="macOS">
+    ```bash
+    brew install vale
+    ```
+  </Tab>
+  <Tab value="ubuntu" label="Ubuntu/Debian">
+    ```bash
+    sudo apt install vale
+    ```
+  </Tab>
+  <Tab value="windows" label="Windows">
+    ```bash
+    choco install vale
+    ```
+  </Tab>
+  <Tab value="manual" label="Manual">
+    Baixe de [https://github.com/errata-ai/vale/releases](https://github.com/errata-ai/vale/releases)
+  </Tab>
+</Tabs>
+
+### 4. Compile o Projeto
+
+```bash
+npm run build
+```
+
+## 🎯 Teste Rápido
+
+Agora você pode testar se tudo está funcionando:
+
+### Opção 1: Comando Único (Recomendado)
+
+```bash
+npm run start-npm
+```
+
+Este comando inicia:
+- 🌐 **Servidor HTTP** em `http://localhost:3000`
+- 📱 **Interface Web** em `http://localhost:8080`
+
+### Opção 2: Teste via Terminal
+
+```bash
+# Teste o Vale diretamente
+vale --version
+
+# Teste o servidor MCP
+npm start
+```
+
+## ✅ Verificação da Instalação
+
+### 1. Teste a API HTTP
+
+```bash
+curl http://localhost:3000/test
+```
+
+**Resposta esperada:**
+```json
+{
+  "message": "✅ Server is working!",
+  "timestamp": "2025-10-24T10:30:00.000Z",
+  "vale_config": "/path/to/vale.ini"
+}
+```
+
+### 2. Teste o Status do Vale
+
+```bash
+curl http://localhost:3000/vale/status
+```
+
+### 3. Teste a Interface Web
+
+Abra no navegador: `http://localhost:8080/web-interface.html`
+
+## 🎉 Primeiro Teste de Texto
+
+Vamos fazer seu primeiro teste de verificação de texto:
+
+```bash
+curl -X POST http://localhost:3000/vale/lint \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "This is a sample text for analysis.",
+    "fileName": "test.md"
+  }'
+```
+
+## Próximos Passos
+
+Agora que tudo está funcionando, explore os outros guias:
+
+- 📖 [Guia da Interface Web](./web-interface.mdx) - Use a interface gráfica
+- 🔌 [Guia da API HTTP](./http-api.mdx) - Integre com suas aplicações
+- 🤖 [Guia do Protocolo MCP](./mcp-protocol.mdx) - Conecte com assistentes IA
+- ⚙️ [Configuração Avançada](./advanced-configuration.mdx) - Personalize as regras
+
+## Problemas Comuns
+
+### Vale não encontrado
+
+Se você receber erro "Vale is not installed":
+
+1. Verifique a instalação: `vale --version`
+2. Adicione ao PATH se necessário
+3. Reinstale usando o método apropriado para seu sistema
+
+### Porta já em uso
+
+Se as portas 3000 ou 8080 estiverem ocupadas:
+
+```bash
+# Use portas alternativas
+PORT=3001 npm run http
+python3 -m http.server 8081
+```
+
+### Dependências não encontradas
+
+```bash
+# Limpe e reinstale
+rm -rf node_modules package-lock.json
+npm install
+npm run build
+```
