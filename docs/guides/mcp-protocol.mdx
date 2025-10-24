@@ -1,0 +1,453 @@
+---
+title: "Guia do Protocolo MCP"
+description: "Integre o Vale com assistentes IA usando Model Context Protocol"
+date: "2025-10-24"
+tags: ["mcp", "ai", "claude", "protocol", "assistente"]
+---
+
+# 🤖 Guia do Protocolo MCP
+
+O Model Context Protocol (MCP) permite que assistentes IA como Claude Desktop usem o Vale diretamente para verificação de texto. Este guia mostra como configurar e usar essa integração.
+
+## O que é MCP?
+
+O **Model Context Protocol** é um padrão aberto que permite:
+- 🔗 **Conectar assistentes IA** com ferramentas externas
+- 📡 **Comunicação bidirecional** entre IA e serviços
+- 🛠️ **Execução de ferramentas** em tempo real
+- 🔐 **Acesso controlado** a recursos externos
+
+## Configurações Suportadas
+
+### 1. Claude Desktop (Recomendado)
+
+A integração mais popular e fácil de configurar.
+
+### 2. Clientes MCP Customizados
+
+Para desenvolvedores que querem criar suas próprias integrações.
+
+### 3. Python Client
+
+Cliente de exemplo incluído no projeto.
+
+## 🚀 Configuração do Claude Desktop
+
+### Pré-requisitos
+
+1. **Claude Desktop** instalado
+2. **MCP Vale Server** compilado
+3. **Vale** instalado no sistema
+
+### Passo 1: Compilar o Servidor
+
+```bash
+cd mcp-writechoice-server
+npm install
+npm run build
+```
+
+### Passo 2: Localizar Arquivo de Configuração
+
+O Claude Desktop usa um arquivo de configuração JSON:
+
+import { Tabs, Tab } from '@/components/ui/tabs'
+
+<Tabs defaultValue="macos">
+  <Tab value="macos" label="macOS">
+    ```bash
+    ~/Library/Application Support/Claude/claude_desktop_config.json
+    ```
+  </Tab>
+  <Tab value="windows" label="Windows">
+    ```bash
+    %APPDATA%\Claude\claude_desktop_config.json
+    ```
+  </Tab>
+  <Tab value="linux" label="Linux">
+    ```bash
+    ~/.config/Claude/claude_desktop_config.json
+    ```
+  </Tab>
+</Tabs>
+
+### Passo 3: Configurar o MCP Server
+
+Crie ou edite o arquivo de configuração:
+
+```json
+{
+  "mcpServers": {
+    "mcp-vale-server": {
+      "command": "node",
+      "args": ["/caminho/completo/para/mcp-writechoice-server/dist/index.js"],
+      "env": {
+        "VALE_CONFIG_PATH": "/caminho/completo/para/mcp-writechoice-server/vale.ini"
+      }
+    }
+  }
+}
+```
+
+**⚠️ Importante:** Use caminhos absolutos completos!
+
+### Exemplo de Configuração Completa
+
+```json
+{
+  "mcpServers": {
+    "mcp-vale-server": {
+      "command": "node",
+      "args": ["/Users/usuario/projetos/mcp-writechoice-server/dist/index.js"],
+      "env": {
+        "VALE_CONFIG_PATH": "/Users/usuario/projetos/mcp-writechoice-server/vale.ini"
+      }
+    }
+  }
+}
+```
+
+### Passo 4: Reiniciar Claude Desktop
+
+1. **Feche completamente** o Claude Desktop
+2. **Reabra** o aplicativo
+3. **Verifique** se o servidor foi carregado (deve aparecer na lista de ferramentas)
+
+## ✅ Verificação da Instalação
+
+### No Claude Desktop
+
+Você deve ver uma nova ferramenta disponível:
+
+```
+🔧 Ferramentas Disponíveis:
+- lint_text
+- check_vale_status
+```
+
+### Teste Básico
+
+Digite no Claude Desktop:
+
+```
+Por favor, analise este texto usando Vale:
+
+"Their are many problems in this sentance."
+```
+
+**Resposta esperada:**
+```
+Vou analisar seu texto usando o Vale...
+
+Vale Lint Results for document.md
+Total Issues: 2
+
+🚨 ERRORS (2):
+  Line 1: 'Their' is incorrect. Use 'There' instead. (Aspect.Spelling)
+  Line 1: 'sentance' is incorrect. Use 'sentence' instead. (Aspect.Spelling)
+
+📊 Analysis Summary:
+- Text analyzed successfully
+- Found 2 spelling errors that should be corrected
+```
+
+## 🛠️ Ferramentas MCP Disponíveis
+
+### 1. `lint_text`
+
+Analisa texto usando Vale.
+
+**Parâmetros:**
+- `text` (obrigatório): Texto para análise
+- `fileName` (opcional): Nome do arquivo (padrão: "document.md")
+
+**Exemplo de uso no Claude:**
+```
+Analise este email corporativo usando Vale:
+
+"Hi team, we need to finalize the project ASAP. Their are some issues that need fixing."
+```
+
+### 2. `check_vale_status`
+
+Verifica se o Vale está funcionando.
+
+**Sem parâmetros**
+
+**Exemplo de uso no Claude:**
+```
+Verifique se o Vale está funcionando corretamente.
+```
+
+## 🎯 Casos de Uso Práticos
+
+### 1. Revisão de Documentos
+
+```
+Claude, por favor analise este relatório e me dê sugestões de melhoria:
+
+[Cole seu texto aqui]
+```
+
+### 2. Verificação de Emails
+
+```
+Antes de enviar este email importante, você pode verificar o estilo e gramática?
+
+[Cole o email aqui]
+```
+
+### 3. Análise de Conteúdo Web
+
+```
+Analise este conteúdo do blog para garantir que está seguindo boas práticas de escrita:
+
+[Cole o conteúdo aqui]
+```
+
+### 4. Revisão de Código de Documentação
+
+```
+Verifique a documentação deste README para melhorar a clareza:
+
+[Cole a documentação aqui]
+```
+
+## 🐍 Cliente Python
+
+O projeto inclui um cliente Python de exemplo:
+
+### Instalação
+
+```bash
+pip install mcp
+```
+
+### Exemplo de Uso
+
+```python
+# test_client.py (incluído no projeto)
+import asyncio
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
+
+async def main():
+    # Configurar parâmetros do servidor
+    server_params = StdioServerParameters(
+        command="node",
+        args=["./dist/index.js"],
+        env={"VALE_CONFIG_PATH": "./vale.ini"}
+    )
+    
+    async with stdio_client(server_params) as (read, write):
+        async with ClientSession(read, write) as session:
+            # Inicializar o cliente
+            await session.initialize()
+            
+            # Listar ferramentas disponíveis
+            tools = await session.list_tools()
+            print("Ferramentas disponíveis:")
+            for tool in tools.tools:
+                print(f"- {tool.name}: {tool.description}")
+            
+            # Analisar texto
+            result = await session.call_tool(
+                "lint_text",
+                arguments={
+                    "text": "This is a sample text with potencial issues.",
+                    "fileName": "test.md"
+                }
+            )
+            
+            print("\nResultado da análise:")
+            for content in result.content:
+                print(content.text)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+### Executar o Cliente
+
+```bash
+python test_client.py
+```
+
+## 🔧 Desenvolvimento de Clientes Customizados
+
+### Esquema das Ferramentas
+
+```typescript
+// lint_text
+{
+  name: "lint_text",
+  description: "Lint text content using Vale style checker",
+  inputSchema: {
+    type: "object",
+    properties: {
+      text: {
+        type: "string",
+        description: "The text content to lint"
+      },
+      fileName: {
+        type: "string", 
+        description: "Optional filename for the text (default: document.md)"
+      }
+    },
+    required: ["text"]
+  }
+}
+
+// check_vale_status
+{
+  name: "check_vale_status",
+  description: "Check if Vale is installed and working properly",
+  inputSchema: {
+    type: "object",
+    properties: {}
+  }
+}
+```
+
+### Cliente Node.js Customizado
+
+```javascript
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { spawn } from 'child_process';
+
+async function createValeClient() {
+    const serverProcess = spawn('node', ['./dist/index.js'], {
+        env: { ...process.env, VALE_CONFIG_PATH: './vale.ini' }
+    });
+    
+    const transport = new StdioClientTransport({
+        stdin: serverProcess.stdin,
+        stdout: serverProcess.stdout
+    });
+    
+    const client = new Client(
+        { name: 'vale-client', version: '1.0.0' },
+        { capabilities: {} }
+    );
+    
+    await client.connect(transport);
+    return { client, serverProcess };
+}
+
+async function lintText(text, fileName = 'document.md') {
+    const { client, serverProcess } = await createValeClient();
+    
+    try {
+        const result = await client.request(
+            { method: 'tools/call' },
+            {
+                name: 'lint_text',
+                arguments: { text, fileName }
+            }
+        );
+        
+        return result.content[0].text;
+    } finally {
+        serverProcess.kill();
+    }
+}
+
+// Uso
+lintText('This is a test sentance.').then(console.log);
+```
+
+## 🚫 Solução de Problemas
+
+### Servidor não aparece no Claude
+
+1. **Verifique os caminhos** no arquivo de configuração
+   ```bash
+   # Teste se o arquivo existe
+   ls -la /caminho/para/dist/index.js
+   ```
+
+2. **Valide o JSON** de configuração
+   ```bash
+   cat ~/.../claude_desktop_config.json | jq .
+   ```
+
+3. **Verifique as permissões**
+   ```bash
+   chmod +x /caminho/para/dist/index.js
+   ```
+
+4. **Reinicie completamente** o Claude Desktop
+
+### Erro "Vale not found"
+
+1. **Verifique instalação do Vale**
+   ```bash
+   vale --version
+   ```
+
+2. **Confirme o PATH** no ambiente MCP
+   ```json
+   {
+     "env": {
+       "VALE_CONFIG_PATH": "./vale.ini",
+       "PATH": "/usr/local/bin:/usr/bin:/bin"
+     }
+   }
+   ```
+
+### Servidor trava ou não responde
+
+1. **Teste manualmente**
+   ```bash
+   node ./dist/index.js
+   # Deve mostrar: "MCP Vale server running on stdio"
+   ```
+
+2. **Verifique logs** do Claude Desktop
+   - macOS: `~/Library/Logs/Claude/`
+   - Windows: `%APPDATA%\Claude\Logs\`
+
+3. **Recompile o projeto**
+   ```bash
+   npm run build
+   ```
+
+## 🔮 Recursos Avançados
+
+### Configuração com Múltiplos Servidores
+
+```json
+{
+  "mcpServers": {
+    "mcp-vale-server": {
+      "command": "node",
+      "args": ["/path/to/mcp-writechoice-server/dist/index.js"],
+      "env": {
+        "VALE_CONFIG_PATH": "/path/to/vale.ini"
+      }
+    },
+    "outro-servidor": {
+      "command": "python",
+      "args": ["/path/to/outro-servidor.py"]
+    }
+  }
+}
+```
+
+### Configuração com Docker
+
+```json
+{
+  "mcpServers": {
+    "mcp-vale-server": {
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "-v", "/local/vale.ini:/app/vale.ini",
+        "mcp-vale-server"
+      ]
+    }
+  }
+}
+```

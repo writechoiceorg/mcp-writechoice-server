@@ -1,0 +1,289 @@
+openapi: 3.0.3
+info:
+  title: MCP Vale Server API
+  description: >
+    Uma API HTTP para verificação de qualidade de texto usando Vale, integrada com o Model Context Protocol (MCP). 
+    Oferece análise de estilo e gramática através de múltiplos conjuntos de regras incluindo Google Style Guide, 
+    proselint, alex, WC-Styles e Aspect.
+  version: 1.0.0
+  contact:
+    name: MCP Vale Server
+    url: https://github.com/writechoiceorg/mcp-writechoice-server
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3000
+    description: Servidor de desenvolvimento local
+
+tags:
+  - name: vale
+    description: Operações relacionadas ao Vale (verificação de texto)
+  - name: system
+    description: Informações do sistema e status
+
+paths:
+  /:
+    get:
+      tags: [system]
+      summary: Documentação da API
+      description: Retorna informações sobre a API, endpoints disponíveis e exemplos de uso
+      responses:
+        '200':
+          description: Informações da API retornadas com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiInfo'
+
+  /vale/status:
+    get:
+      tags: [vale]
+      summary: Verificar status do Vale
+      description: Verifica se o Vale está instalado e acessível, retorna informações sobre versão e configuração
+      responses:
+        '200':
+          description: Status do Vale verificado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValeStatusResponse'
+        '500':
+          description: Erro interno do servidor ao verificar status do Vale
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /vale/lint:
+    post:
+      tags: [vale]
+      summary: Fazer lint de texto
+      description: >
+        Analisa um texto usando o Vale para verificar estilo, gramática e qualidade. 
+        Aplica múltiplos conjuntos de regras incluindo Google Style Guide, proselint, alex, WC-Styles e Aspect.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LintRequest'
+            examples:
+              exemplo_basico:
+                summary: Exemplo básico de lint
+                value:
+                  text: "This is a sample text for analysis. It might contain various writing issues."
+                  fileName: "document.md"
+              exemplo_sem_arquivo:
+                summary: Exemplo sem especificar nome do arquivo
+                value:
+                  text: "Your text here for quality analysis."
+      responses:
+        '200':
+          description: Análise de texto concluída com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LintResponse'
+              examples:
+                sem_problemas:
+                  summary: Texto sem problemas
+                  value:
+                    result:
+                      content:
+                        - text: |
+                            Vale Lint Results for document.md
+                            Total Issues: 0
+
+                            ✅ No issues found! Your text follows all Vale style guidelines.
+
+                            📊 Analysis Summary:
+                            - Text analyzed successfully
+                            - Checked rules: Vale, Google, proselint, alex, WC-Styles, Aspect
+                            - Text quality: Excellent!
+                com_problemas:
+                  summary: Texto com problemas encontrados
+                  value:
+                    result:
+                      content:
+                        - text: |
+                            Vale Lint Results for document.md
+                            Total Issues: 3
+
+                            🚨 ERRORS (1):
+                              Line 1: Use 'through' instead of 'thru' (Google.Spelling)
+
+                            ⚠️ WARNINGS (1):
+                              Line 2: Consider using 'straightforward' instead of 'simple' (proselint.Hedging)
+
+                            💡 SUGGESTIONS (1):
+                              Line 3: Try to keep sentences under 20 words (WC-Styles.SentenceLength)
+
+                            📊 Analysis Summary:
+                            - Text analyzed successfully
+                            - Checked rules: Vale, Google, proselint, alex, WC-Styles, Aspect
+                            - Found 3 suggestions for improvement
+        '400':
+          description: Requisição inválida - texto não fornecido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Text is required"
+        '500':
+          description: Erro interno do servidor durante análise
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /test:
+    get:
+      tags: [system]
+      summary: Endpoint de teste
+      description: Verifica se o servidor está funcionando corretamente e retorna informações básicas de status
+      responses:
+        '200':
+          description: Servidor funcionando corretamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestResponse'
+
+components:
+  schemas:
+    ApiInfo:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "🚀 MCP Vale HTTP API"
+        status:
+          type: string
+          example: "online"
+        endpoints:
+          type: object
+          properties:
+            'GET /vale/status':
+              type: string
+              example: "Verifica status do Vale"
+            'POST /vale/lint':
+              type: string
+              example: "Faz lint de texto { text, fileName? }"
+            'GET /test':
+              type: string
+              example: "Endpoint de teste"
+        example:
+          type: object
+          properties:
+            lint_request:
+              type: object
+              properties:
+                url:
+                  type: string
+                  example: "POST /vale/lint"
+                body:
+                  $ref: '#/components/schemas/LintRequest'
+
+    LintRequest:
+      type: object
+      required: [text]
+      properties:
+        text:
+          type: string
+          description: O texto a ser analisado pelo Vale
+          example: "This is a sample text for analysis. It might contain various writing issues."
+          minLength: 1
+        fileName:
+          type: string
+          description: Nome opcional do arquivo (padrão document.md)
+          example: "document.md"
+          default: "document.md"
+
+    LintResponse:
+      type: object
+      properties:
+        result:
+          type: object
+          properties:
+            content:
+              type: array
+              items:
+                type: object
+                properties:
+                  text:
+                    type: string
+                    description: >
+                      Resultado formatado da análise incluindo contagem de problemas, 
+                      erros, warnings, sugestões e resumo da análise
+
+    ValeStatusResponse:
+      type: object
+      properties:
+        result:
+          type: object
+          properties:
+            content:
+              type: array
+              items:
+                type: object
+                properties:
+                  text:
+                    type: string
+                    description: >
+                      Informações sobre o status do Vale, incluindo se está instalado, 
+                      versão e regras disponíveis (Vale, Google, proselint, alex, WC-Styles, Aspect)
+
+    TestResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "✅ Server is working!"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-10-24T10:30:00.000Z"
+        vale_config:
+          type: string
+          description: Caminho para o arquivo de configuração do Vale
+          example: "/Users/user/project/vale.ini"
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Mensagem de erro descrevendo o problema ocorrido
+
+    LintError:
+      type: object
+      description: Representa um erro, warning ou sugestão encontrada pelo Vale
+      properties:
+        line:
+          type: integer
+          description: Número da linha onde o problema foi encontrado
+          minimum: 0
+        column:
+          type: integer
+          description: Número da coluna onde o problema foi encontrado
+          minimum: 0
+        message:
+          type: string
+          description: Mensagem descrevendo o problema
+        severity:
+          type: string
+          enum: [error, warning, suggestion]
+          description: Severidade do problema encontrado
+        rule:
+          type: string
+          description: Nome da regra do Vale que detectou o problema
+        suggestion:
+          type: string
+          description: Sugestão opcional de correção
+
+externalDocs:
+  description: Documentação do Vale
+  url: https://vale.sh/

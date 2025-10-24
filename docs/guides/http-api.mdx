@@ -1,0 +1,489 @@
+---
+title: "Guia da API HTTP"
+description: "Integre o MCP Vale Server em suas aplicações usando a API REST"
+date: "2025-10-24"
+tags: ["api", "http", "rest", "integração", "programação"]
+---
+
+# 🔌 Guia da API HTTP
+
+A API HTTP do MCP Vale Server permite integrar verificação de texto em qualquer aplicação. Este guia mostra como usar todos os endpoints disponíveis.
+
+## Base da API
+
+```
+Base URL: http://localhost:3000
+Content-Type: application/json
+```
+
+## 📋 Endpoints Disponíveis
+
+### Visão Geral Rápida
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| `GET` | `/` | Informações da API |
+| `GET` | `/vale/status` | Status do Vale |
+| `POST` | `/vale/lint` | Analisar texto |
+| `GET` | `/test` | Teste de conectividade |
+
+## 🚀 Iniciando a API
+
+```bash
+# Inicie o servidor HTTP
+npm run http
+
+# Ou use o comando conjunto
+npm run start-npm
+```
+
+A API estará disponível em: `http://localhost:3000`
+
+## 📖 Documentação dos Endpoints
+
+### 1. Informações da API
+
+**`GET /`**
+
+Retorna informações gerais sobre a API e exemplos de uso.
+
+```bash
+curl -X GET http://localhost:3000/
+```
+
+**Resposta:**
+```json
+{
+  "message": "🚀 MCP Vale HTTP API",
+  "status": "online",
+  "endpoints": {
+    "GET /vale/status": "Verifica status do Vale",
+    "POST /vale/lint": "Faz lint de texto { text, fileName? }",
+    "GET /test": "Endpoint de teste"
+  },
+  "example": {
+    "lint_request": {
+      "url": "POST /vale/lint",
+      "body": {
+        "text": "Your text here",
+        "fileName": "document.md"
+      }
+    }
+  }
+}
+```
+
+### 2. Status do Vale
+
+**`GET /vale/status`**
+
+Verifica se o Vale está instalado e funcionando corretamente.
+
+```bash
+curl -X GET http://localhost:3000/vale/status
+```
+
+**Resposta (Vale instalado):**
+```json
+{
+  "result": {
+    "content": [
+      {
+        "text": "Vale Installation Status:\n\n✅ Vale is installed\nVersion: vale 3.0.7\nConfig Path: /path/to/vale.ini\n\nAvailable rules:\n- Vale (basic rules)\n- Google (style guide)\n- proselint (prose checks)\n- alex (inclusive language)\n- WC-Styles (max 20 words per sentence)\n- Aspect (spell check)"
+      }
+    ]
+  }
+}
+```
+
+### 3. Análise de Texto
+
+**`POST /vale/lint`**
+
+Analisa um texto usando o Vale e retorna problemas encontrados.
+
+#### Parâmetros
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| `text` | string | ✅ | Texto a ser analisado |
+| `fileName` | string | ❌ | Nome do arquivo (padrão: "document.md") |
+
+#### Exemplo Básico
+
+```bash
+curl -X POST http://localhost:3000/vale/lint \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "This is a sample text for analysis.",
+    "fileName": "document.md"
+  }'
+```
+
+#### Exemplo com Problemas
+
+```bash
+curl -X POST http://localhost:3000/vale/lint \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Their are many problems in this sentance and its way to long for good readability.",
+    "fileName": "test.md"
+  }'
+```
+
+**Resposta:**
+```json
+{
+  "result": {
+    "content": [
+      {
+        "text": "Vale Lint Results for test.md\nTotal Issues: 4\n\n🚨 ERRORS (2):\n  Line 1: 'Their' is incorrect. Use 'There' instead. (Aspect.Spelling)\n  Line 1: 'sentance' is incorrect. Use 'sentence' instead. (Aspect.Spelling)\n\n⚠️ WARNINGS (1):\n  Line 1: Consider removing 'way'. (proselint.Hedging)\n\n💡 SUGGESTIONS (1):\n  Line 1: Try to keep sentences under 20 words. (WC-Styles.SentenceLength)\n\n📊 Analysis Summary:\n- Text analyzed successfully\n- Checked rules: Vale, Google, proselint, alex, WC-Styles, Aspect\n- Found 4 suggestions for improvement"
+      }
+    ]
+  }
+}
+```
+
+### 4. Teste de Conectividade
+
+**`GET /test`**
+
+Verifica se o servidor está funcionando.
+
+```bash
+curl -X GET http://localhost:3000/test
+```
+
+**Resposta:**
+```json
+{
+  "message": "✅ Server is working!",
+  "timestamp": "2025-10-24T10:30:00.000Z",
+  "vale_config": "/path/to/vale.ini"
+}
+```
+
+## 💻 Exemplos de Integração
+
+### JavaScript/Node.js
+
+```javascript
+// Usando fetch (nativo)
+async function lintText(text, fileName = 'document.md') {
+  try {
+    const response = await fetch('http://localhost:3000/vale/lint', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ text, fileName })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log(result.result.content[0].text);
+  } catch (error) {
+    console.error('Erro na análise:', error);
+  }
+}
+
+// Usando axios
+const axios = require('axios');
+
+async function lintTextAxios(text, fileName = 'document.md') {
+  try {
+    const response = await axios.post('http://localhost:3000/vale/lint', {
+      text,
+      fileName
+    });
+    
+    console.log(response.data.result.content[0].text);
+  } catch (error) {
+    console.error('Erro:', error.response?.data?.error || error.message);
+  }
+}
+
+// Uso
+lintText('This is a test sentence with potencial issues.');
+```
+
+### Python
+
+```python
+import requests
+import json
+
+class ValeClient:
+    def __init__(self, base_url='http://localhost:3000'):
+        self.base_url = base_url
+    
+    def lint_text(self, text, file_name='document.md'):
+        """Analisa texto usando Vale"""
+        url = f'{self.base_url}/vale/lint'
+        data = {
+            'text': text,
+            'fileName': file_name
+        }
+        
+        try:
+            response = requests.post(url, json=data)
+            response.raise_for_status()
+            
+            result = response.json()
+            return result['result']['content'][0]['text']
+        except requests.exceptions.RequestException as e:
+            return f'Erro na análise: {e}'
+    
+    def check_status(self):
+        """Verifica status do Vale"""
+        url = f'{self.base_url}/vale/status'
+        
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            
+            result = response.json()
+            return result['result']['content'][0]['text']
+        except requests.exceptions.RequestException as e:
+            return f'Erro ao verificar status: {e}'
+
+# Uso
+client = ValeClient()
+
+# Verificar status
+print(client.check_status())
+
+# Analisar texto
+result = client.lint_text('This is a test sentance.')
+print(result)
+```
+
+### PHP
+
+```php
+<?php
+class ValeClient {
+    private $baseUrl;
+    
+    public function __construct($baseUrl = 'http://localhost:3000') {
+        $this->baseUrl = $baseUrl;
+    }
+    
+    public function lintText($text, $fileName = 'document.md') {
+        $url = $this->baseUrl . '/vale/lint';
+        $data = json_encode([
+            'text' => $text,
+            'fileName' => $fileName
+        ]);
+        
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'POST',
+                'header' => 'Content-Type: application/json',
+                'content' => $data
+            ]
+        ]);
+        
+        $response = file_get_contents($url, false, $context);
+        
+        if ($response === false) {
+            return 'Erro na análise';
+        }
+        
+        $result = json_decode($response, true);
+        return $result['result']['content'][0]['text'];
+    }
+}
+
+// Uso
+$client = new ValeClient();
+$result = $client->lintText('This is a test sentance.');
+echo $result;
+?>
+```
+
+### cURL (Bash)
+
+```bash
+#!/bin/bash
+
+# Função para analisar texto
+lint_text() {
+    local text="$1"
+    local filename="${2:-document.md}"
+    
+    curl -s -X POST http://localhost:3000/vale/lint \
+        -H "Content-Type: application/json" \
+        -d "{\"text\":\"$text\",\"fileName\":\"$filename\"}" \
+        | jq -r '.result.content[0].text'
+}
+
+# Função para verificar status
+check_status() {
+    curl -s http://localhost:3000/vale/status \
+        | jq -r '.result.content[0].text'
+}
+
+# Uso
+lint_text "This is a test sentance." "test.md"
+check_status
+```
+
+## ⚡ Uso Avançado
+
+### Processamento em Lote
+
+```javascript
+async function processMultipleTexts(texts) {
+    const results = await Promise.all(
+        texts.map(async (text, index) => {
+            try {
+                const response = await fetch('http://localhost:3000/vale/lint', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        text, 
+                        fileName: `document_${index + 1}.md` 
+                    })
+                });
+                return await response.json();
+            } catch (error) {
+                return { error: error.message };
+            }
+        })
+    );
+    
+    return results;
+}
+
+// Uso
+const texts = [
+    "First text to analyze.",
+    "Second text with potencial issues.",
+    "Third text for quality check."
+];
+
+processMultipleTexts(texts).then(results => {
+    results.forEach((result, index) => {
+        console.log(`\n--- Resultado ${index + 1} ---`);
+        if (result.error) {
+            console.log('Erro:', result.error);
+        } else {
+            console.log(result.result.content[0].text);
+        }
+    });
+});
+```
+
+### Análise de Arquivos
+
+```python
+import os
+import glob
+
+def analyze_markdown_files(directory):
+    """Analisa todos os arquivos .md em um diretório"""
+    client = ValeClient()
+    
+    for file_path in glob.glob(os.path.join(directory, '*.md')):
+        print(f"\n📄 Analisando: {file_path}")
+        
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        result = client.lint_text(content, os.path.basename(file_path))
+        print(result)
+        print("-" * 50)
+
+# Uso
+analyze_markdown_files('./docs')
+```
+
+## 🛠️ Tratamento de Erros
+
+### Códigos de Status HTTP
+
+| Código | Significado | Ação |
+|--------|-------------|------|
+| `200` | Sucesso | Processar resultado |
+| `400` | Requisição inválida | Verificar parâmetros |
+| `500` | Erro interno | Verificar Vale/servidor |
+
+### Exemplo de Tratamento
+
+```javascript
+async function lintTextWithErrorHandling(text, fileName) {
+    try {
+        const response = await fetch('http://localhost:3000/vale/lint', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text, fileName })
+        });
+
+        if (response.status === 400) {
+            const error = await response.json();
+            throw new Error(`Parâmetros inválidos: ${error.error}`);
+        }
+
+        if (response.status === 500) {
+            const error = await response.json();
+            throw new Error(`Erro do servidor: ${error.error}`);
+        }
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        return result.result.content[0].text;
+
+    } catch (error) {
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            return 'Erro: Servidor não está rodando ou inacessível';
+        }
+        return `Erro na análise: ${error.message}`;
+    }
+}
+```
+
+## 🔧 Configuração de Ambiente
+
+### Variáveis de Ambiente
+
+```bash
+# .env
+PORT=3000                    # Porta do servidor HTTP
+VALE_CONFIG_PATH=./vale.ini  # Caminho do config do Vale
+```
+
+### Docker
+
+```dockerfile
+# Dockerfile
+FROM node:18-alpine
+
+# Instalar Vale
+RUN apk add --no-cache curl
+RUN curl -L https://github.com/errata-ai/vale/releases/latest/download/vale_Linux_64-bit.tar.gz | tar -xz -C /usr/local/bin
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+RUN npm run build
+
+EXPOSE 3000
+CMD ["npm", "run", "http"]
+```
+
+## 🚀 Próximos Passos
+
+Agora que você domina a API HTTP:
+
+- 🤖 [Protocolo MCP](./mcp-protocol.mdx) - Integração com assistentes IA
+- ⚙️ [Configuração Avançada](./advanced-configuration.mdx) - Personalize regras
+- 🔍 [Troubleshooting](./troubleshooting.mdx) - Resolva problemas comuns
