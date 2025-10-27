@@ -178,7 +178,6 @@ app.get('/vale/status', async (req, res) => {
       response += `- proselint (prose checks)\n`;
       response += `- alex (inclusive language)\n`;
       response += `- WC-Styles (max 20 words per sentence)\n`;
-      response += `- Aspect (spell check)\n`;
     } else {
       response += `❌ Vale is not installed or not accessible\n`;
       response += `Error: ${status.error}\n\n`;
@@ -244,7 +243,7 @@ app.post('/vale/lint', async (req, res) => {
     
     formattedResult += '\n📊 Analysis Summary:\n';
     formattedResult += '- Text analyzed successfully\n';
-    formattedResult += '- Checked rules: Vale, Google, proselint, alex, WC-Styles, Aspect\n';
+    formattedResult += '- Checked rules: Vale, Google, proselint, alex, WC-Styles\n';
     if (totalIssues > 0) {
       formattedResult += `- Found ${totalIssues} suggestions for improvement\n`;
     } else {

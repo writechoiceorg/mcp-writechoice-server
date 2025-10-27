@@ -6,7 +6,7 @@ Um servidor Model Context Protocol (MCP) para verificação de qualidade de text
 
 - ✅ **Fazer lint de texto com Vale** - Analisar qualidade e estilo de texto
 - ✅ **Verificar status do Vale** - Confirmar se Vale está instalado e configurado
-- ✅ **Múltiplos estilos de verificação** - Google, proselint, alex, WC-Styles, Aspect
+- ✅ **Múltiplos estilos de verificação** - Google, proselint, alex, WC-Styles
 - ✅ **Interface Web simples** - Interface gráfica para teste
 - ✅ **API HTTP** - Endpoints REST para integração
 - ✅ **Protocolo MCP nativo** - Integração direta com assistentes IA
