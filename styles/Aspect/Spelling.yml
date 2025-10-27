@@ -1,5 +1,0 @@
-extends: spelling
-level: error
-message: "Did you really mean '%s'?"
-vocab:
-  - Aspect
