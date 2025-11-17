@@ -1,0 +1,102 @@
+meta {
+  name: Fazer lint de texto
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/vale/lint
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "text": "",
+    "fileName": ""
+  }
+}
+
+example {
+  name: Texto sem problemas
+  
+  request: {
+    url: {{baseUrl}}/vale/lint
+    method: POST
+    mode: json
+    body:json: {
+      {
+        "text": "",
+        "fileName": ""
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "result": {
+            "content": [
+              {
+                "text": "Vale Lint Results for document.md\nTotal Issues: 0\n\n✅ No issues found! Your text follows all Vale style guidelines.\n\n📊 Analysis Summary:\n- Text analyzed successfully\n- Checked rules: Vale, Google, proselint, alex, WC-Styles, Aspect\n- Text quality: Excellent!\n"
+              }
+            ]
+          }
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: Texto com problemas encontrados
+  
+  request: {
+    url: {{baseUrl}}/vale/lint
+    method: POST
+    mode: json
+    body:json: {
+      {
+        "text": "",
+        "fileName": ""
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "result": {
+            "content": [
+              {
+                "text": "Vale Lint Results for document.md\nTotal Issues: 3\n\n🚨 ERRORS (1):\n  Line 1: Use 'through' instead of 'thru' (Google.Spelling)\n\n⚠️ WARNINGS (1):\n  Line 2: Consider using 'straightforward' instead of 'simple' (proselint.Hedging)\n\n💡 SUGGESTIONS (1):\n  Line 3: Try to keep sentences under 20 words (WC-Styles.SentenceLength)\n\n📊 Analysis Summary:\n- Text analyzed successfully\n- Checked rules: Vale, Google, proselint, alex, WC-Styles, Aspect\n- Found 3 suggestions for improvement\n"
+              }
+            ]
+          }
+        }
+      '''
+    }
+  }
+}
