@@ -4,11 +4,11 @@ This guide will help you install and use the Vale-MCP server with Gemini Code As
 
 ## Overview
 
-Imagine you buy a new mouse for your computer. You plug it in, and it just works. You don't need to solder wires or write a new operating system just to make the mouse click. This is because of a standard called **USB**.
+Imagine you buy a new mouse for your computer. You plug it in, and it just works. You don't need to solder wires or write a new operating system to make the mouse click. This is because of a standard called **USB**.
 
 **MCP** is like a USB port for Artificial Intelligence.
 
-- **Before MCP:** If you wanted an AI (like Claude or ChatGPT) to read your calendar, your emails, and your database, you had to write specific, messy code for each one separately. It was like having a different shaped plug for every single device.
+- **Before MCP:** If you wanted an AI (like Claude or ChatGPT) to read your calendar, your emails, and your database, you had to write specific, messy code for each one separately. It was like having a different-shaped plug for every single device.
 - **With MCP:** There is a standard way to plug data into an AI.
 
 ### So, what is an MCP Server?
@@ -185,6 +185,136 @@ To do this, click `Edit` in the chat window, which will open the `DIFF` of the f
   > - [Copiloti CLI](https://github.com/features/copilot/cli?locale=pt-BR).
   > - [Claude Code](https://www.claude.com/product/claude-code).
   > - [Claude desktop](https://www.claude.com/download).
+
+## Appendix II
+
+Vale example for the WriteChoice (based on the files on Notion about style guide, processes and templates):
+
+```txt
+StylesPath = styles
+MinAlertLevel = suggestion
+
+# Pacotes externos recomendados com base nas suas referências ("Inspired by Google... Microsoft")
+# Você precisará instalar esses pacotes via 'vale sync'
+Packages = Google, Microsoft, alex
+
+[*.{md,mdx}]
+# Habilita os estilos base
+BasedOnStyles = Vale, Google, Microsoft, alex
+
+# --- 1. Comprimento de Frase (Sentence Length) ---
+# O style-guide.md exige especificamente frases com <= 20 palavras.
+# O padrão do Vale é geralmente maior, então sobrescrevemos aqui.
+Vale.SentenceLength.Level = error
+Vale.SentenceLength.Max = 20
+
+# --- 2. Voz e Tom (Voice & Tone) ---
+# "Use second person + active voice" e evite "We" (primeira pessoa).
+# Google.FirstPerson: Garante que não use "I" ou "We".
+# Microsoft.Passive: Detecta voz passiva (ex: "A 400 is returned").
+Google.FirstPerson = YES
+Microsoft.Passive = YES
+Google.Passive = YES
+
+# --- 3. Linguagem Simples (Plain Language) ---
+# O guia proíbe palavras como "utilize", "obtain", "prior to".
+# O estilo Microsoft.ComplexWords é excelente para capturar "utilize" vs "use".
+Microsoft.ComplexWords = YES
+
+# --- 4. Palavras "Proibidas" / Fillers ---
+# O guia proíbe "just, simply, obviously, easy".
+# Google.Weasel e Microsoft.Weasel cobrem a maioria dessas.
+# Google.WordList também ajuda a padronizar termos.
+Google.Weasel = YES
+Microsoft.Weasel = YES
+
+# --- 5. Cabeçalhos (Headings) ---
+# O guia exige "Sentence case" e verbos imperativos.
+# Microsoft.Headings verifica se está em sentence-case.
+Microsoft.Headings = YES
+Google.Headings = YES
+
+# --- 6. Inclusividade ---
+# "Use gender-neutral pronouns (they)".
+# O pacote 'alex' é especializado nisso, mas o Microsoft.GenderBias também ajuda.
+alex.Gender = YES
+Microsoft.GenderBias = YES
+
+# --- 7. Ajustes de Conflito ---
+# Às vezes estilos entram em conflito. Desativamos regras redundantes ou
+# que contradizem o guia específico (ex: se o Google permitir algo que a Microsoft proíbe).
+# Abaixo é um exemplo comum para evitar ruído excessivo:
+Google.Exclamation = NO
+```
+
+Also, you can create a folder called `Styles/SaaSGuide` to add the specific styles from WriteChoice:
+
+This rule blocks specific words listed in the guide as “patronizing” or that hide complexity.
+For the `ForbiddenFillers.yml`:
+
+```yaml
+extends: existence
+message: "Evite palavras de preenchimento como '%s'. Elas podem soar condescendentes ou esconder a complexidade técnica."
+level: error
+ignorecase: true
+tokens:
+  - just
+  - simply
+  - obviously
+  - easy
+  - actually
+  - basically
+  - clearly
+reference: "Style Guide > TL;DR (Forbidden filler)"
+```
+
+This rule suggests the direct exchanges listed in the “Plain Language” table in your guide.
+For the `PlainLanguage.yml`:
+
+```yaml
+extends: substitution
+message: "Prefira usar '%s' em vez de '%s' para maior clareza e brevidade."
+level: warning
+ignorecase: true
+swap:
+  utilize: use
+  utilizes: uses
+  obtain: get
+  obtained: got
+  prior to: before
+  in order to: to
+reference: "Style Guide > 2.3 Plain Language"
+```
+
+The guide calls for “Confidence without hype” and prohibits words such as “awesome.” 
+For the `NoHype.yml`:
+
+```yaml
+extends: existence
+message: "Evite linguagem de marketing ou exagerada ('%s'). Descreva benefícios concretos."
+level: warning
+ignorecase: true
+tokens:
+  - awesome
+  - amazing
+  - cutting-edge
+  - best-of-breed
+  - ground-breaking
+reference: "Style Guide > 2.2 Tone"
+```
+
+When applicable, use the `ValidCallouts.yml` file for the callouts. The guide strictly defines five types of callouts: note, tip, info, warning, and danger. This rule helps to avoid typos (for example, `:::alert`) or unsupported types.
+
+```yaml
+extends: existence
+message: "'%s' não é um tipo de callout válido. Use: note, tip, info, warning, ou danger."
+level: error
+scope: raw
+# Regex para encontrar :::algo que NÃO seja um dos permitidos
+tokens:
+  - ':::(?!(note|tip|info|warning|danger))\w+'
+reference: "Images & Visuals > Quick-Pick Matrix / Style Guide > 6. Links"
+```
 
 ---
 
