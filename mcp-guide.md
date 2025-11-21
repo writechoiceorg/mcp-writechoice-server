@@ -1,10 +1,10 @@
 # Installation and use of the Vale-MCP server
 
-This guide will help you install and use the Vale-MCP server with Gemini Code Assistant, VSCode, and Gemini Code.
+This guide helps you install and use the Vale-MCP server with Gemini Code Assistant, VS Code, and Gemini Code.
 
 ## Overview
 
-Imagine you buy a new mouse for your computer. You plug it in, and it just works. You don't need to solder wires or write a new operating system to make the mouse click. This is because of a standard called **USB**.
+Imagine you buy a new mouse for your computer. You plug it in, and it works. You don't need to solder wires or write a new operating system to make the mouse click. This is because of a standard called **USB**.
 
 **MCP** is like a USB port for Artificial Intelligence.
 
@@ -17,28 +17,28 @@ If MCP is the "USB port," the **MCP Server** is the device you are plugging in (
 
 An **MCP Server** is a small piece of software that sits on top of your data (like your files, database, or API) and says to the AI:
 
-> "Hello! I speak the standard MCP language. Here is the data I have, and here are the tools I can let you use."
+> "I speak the standard Model Context Protocol (MCP) language. Here's the data available, and here are the tools you can use."
 > 
 
 ### How it works
 
 To make this "connection" happen, there are usually three parts involved:
 
-1. **The Host (The Computer):** This is the AI application (like the Claude Desktop app or an IDE like Cursor). It wants information.
+1. **The Host (The Computer):** This is the AI app (like the Claude Desktop app or an IDE like Cursor). It wants information.
 2. **The Protocol (The Cable):** The rules of how they talk to each other.
-3. **The MCP Server (The Device):** This is what we are talking about. It translates your specific data into something the AI understands.
+3. **The Model Context Protocol (MCP) Server (The Device):** This translates your specific data into something the AI understands.
 
 ## Prerequisites
 
 - [Node version 22 and below](https://nodejs.org/en).
 - [Vale Linter installed](https://vale.sh/).
 - [Gemini Code](https://codeassist.google/).
-- [VSCode](https://code.visualstudio.com/) (or other IDE such as [Cursor](https://cursor.com/), [Windsurf](https://windsurf.com/), [Zed](https://zed.dev/)).
+- [VS Code](https://code.visualstudio.com/) or other IDE such as [Cursor](https://cursor.com/), [Windsurf](https://windsurf.com/), or [Zed](https://zed.dev/).
 - Access to the terminal on your operating system.
 
 ## Get started with Vale-MCP
 
-The MCP server won't work with node version 25, so you will need to use node version 22.
+The Model Context Protocol (MCP) server doesn't work with node version 25, so use node version 22.
 
 ```bash
 git clone https://github.com/ChrisChinchilla/Vale-MCP.git
@@ -49,22 +49,22 @@ npm install
 npm run install:global
 ```
 
-This will create the MCP server. To run it and see if it is working correctly, type `vale-cli`.
+This creates the MCP server. To run it and see if it's working correctly, type `vale-cli`.
 
 ![Vale CLI running on terminal](./images/vale-cli.png)
 
-## Add to VSCode to use with GitHub Copilot
+## Add to VS Code for use with Copilot
 
-To use GitHub Copilot in VSCode you need to add a `json` file containing the MCP settings:
+To use GitHub Copilot in VS Code, add a `json` file containing the MCP settings:
 
 1. Press `ctrl + shift + p` on Windows or Linux or `cmd + shift + p` on macOS.
 2. In the search bar, type `> MCP: Add Server` and press `ENTER`.
 
-![Add to VSCode](./images/vs-code-1.png)
+![Add to VS Code](./images/vs-code-1.png)
 
 3. Select the `Command (stdio)` option.
 
-![Select the command type on VSCode](./images/vs-code-2.png)
+![Select the command type on VS Code](./images/vs-code-2.png)
 
 4. Add the command to run the Vale-MCP server: `vale-cli`
 
@@ -78,7 +78,7 @@ To use GitHub Copilot in VSCode you need to add a `json` file containing the MCP
 
 ![Add the scope to the MCP](./images/vs-code-5.png)
 
-7. As soon as you confirm the Global option, the `mcp.json` will open. Paste the following:
+7. As soon as you confirm the Global option, the `mcp.json` opens. Paste the following:
 
 ```json
 {
@@ -97,13 +97,12 @@ To use GitHub Copilot in VSCode you need to add a `json` file containing the MCP
 
 ![Start the MCP server](./images/start-mcp.png)
 
-If everything goes well, the server will have the status `Running`.
+If everything goes well, the server has the status `Running`.
 
-> [!TIP]
-> To see the MCP servers that are currently running in VSCode, go to `Extensions` in VSCode and then select `MCP Servers - Installed`. 
-> You will see a list of all servers in VSCode.
+> **Tip**: To see the MCP servers that are currently running in VS Code, go to `Extensions` in VS Code and then select `MCP Servers - Installed`. 
+> You see a list of all servers in VS Code.
 
-## Add to Cursor
+## Add to the Cursor editor
 
 Follow the instructions in the Cursor guide.
 
@@ -141,7 +140,7 @@ Configured MCP servers:
 ✓ vale: vale-cli  (stdio) - Connected
 ````
 
-This will allow you to use Vale-MCP via the command line. To do so, run gemini:
+This allows you to use Vale-MCP via the command line. To do so, run Gemini:
 
 ```bash
 gemini
@@ -159,58 +158,57 @@ To use Vale-MCP, you can use a natural language command, such as:
 Check the @/docs/ai-orchestration/how-to-add-model.mdx using Vale
 ```
 
-This will trigger Vale-MCP, which will check the file using the `.vale.ini` file and the style files you defined earlier.
+This triggers Vale-MCP, which checks the file using the `.vale.ini` file and the style files you defined earlier.
 
 ![Gemini screen with the command](./images/gemini-2.png)
 
->[!NOTE]
-> In tests, verification using Gemini Code was slower than using GitHub Copilot.
-> Also, Gemini Code will ask for permission to run the command in the file.
+**Note**: in tests, verification using Gemini Code was slower than using GitHub Copilot.
+Also, Gemini Code asks for permission to run the command in the file.
 
 Note that Gemini Code presents an action plan to fix the file. 
-**Always review this plan.** 
+Always review this plan. 
 
 ![Gemini lint result](./images/gemini-plan.png)
 
-After that, it will ask for authorization to modify the `.mdx` file.
+After that, it asks for authorization to modify the `.mdx` file.
 
 ![Gemini correcting the file](./images/gemini-correct.png)
 
-## Checking a file using VSCode
+## Check a file using VS Code
 
-You can check the file directly from the VSCode chat window, whether it's GitHub Copilot or Gemini Code Assistant.
+You can check the file directly from the VS Code chat window, whether it's GitHub Copilot or Gemini Code Assistant.
 
-### GitHub Copilot
+### GitHub Copilot usage
 
-Just open the GitHub Copilot chat and type check_file, and it will check the open file.
+Open the GitHub Copilot chat and type `check_file`, and it checks the open file.
 
-![GitHub Copilot under VSCode](./images/copilot-1.png)
+![GitHub Copilot under VS Code](./images/copilot-1.png)
 
-You should review the assistant's plan. If everything is OK, you can ask it to correct itself using natural language. For example, with the command: `Correct the issues`.
+Review the assistant's plan. If everything is OK, ask it to correct itself using natural language. For example, with the command: `Correct the issues`.
 
-![GitHub Copilot under VSCode](./images/copilot-2.png)
+![GitHub Copilot under VS Code](./images/copilot-2.png)
 
-You can also use natural language and call Vale-MCP with the command `Check the file using Vale`. 
-Afterwards, the file will be displayed with the corrections that will be made. You can keep the agent's corrections (`keep`) or discard them (`Undo`).
+Use natural language and call Vale-MCP with the command `Check the file using Vale`. 
+Afterwards, the file displays with the corrections that are made. Keep the agent's corrections with `keep` or discard them with `Undo`.
 
 ![Copilot review of the file](./images/copilot-review.png)
 
-### Gemini Code Assistant
+### Gemini Code Assistant usage
 
-After running the commands (as GitHub Copilot does), Gemini will offer the option to compare the files. 
-To do this, click `Edit` in the chat window, which will open the `DIFF` of the files. This will allow you to compare and choose what to keep and what to undo.
+After running the commands, Gemini offers the option to compare the files. 
+To do this, click `Edit` in the chat window, which opens the `DIFF` of the files. This allows you to compare and choose what to keep and what to undo.
 
 ![Gemini Code Assistant correcting the file](./images/gemini-code.png)
 
 ## References
 
-- Official Vale-MCP repository: https://github.com/ChrisChinchilla/Vale-MCP
-- Official documentation for using an MCP server in Cursor: https://cursor.com/pt-BR/docs/context/mcp
-- Official documentation on how to use an MCP server in Zed: https://zed.dev/docs/ai/mcp
-- Video illustrating how to add an MCP server in Gemini Code: https://www.youtube.com/watch?v=9xA37mfd_Qs
-- Repository on WriteChoice with MCP (BETA): https://github.com/writechoiceorg/mcp-writechoice-server
-- Official documentation from Vale: https://vale.sh/
-- Documentation on what MCP servers are: https://modelcontextprotocol.io/docs/getting-started/intro
+- Official Vale-MCP repository: https://github.com/ChrisChinchilla/Vale-MCP.
+- Official documentation for using a Model Context Protocol (MCP) server in Cursor: https://cursor.com/pt-BR/docs/context/mcp.
+- Official documentation on how to use a Model Context Protocol (MCP) server in Zed: https://zed.dev/docs/ai/mcp.
+- Video illustrating how to add a Model Context Protocol (MCP) server in Gemini Code: https://www.youtube.com/watch?v=9xA37mfd_Qs.
+- Repository on WriteChoice with Model Context Protocol (MCP) beta: https://github.com/writechoiceorg/mcp-writechoice-server.
+- Official documentation from Vale: https://vale.sh/.
+- Documentation on what Model Context Protocol (MCP) servers are: https://modelcontextprotocol.io/docs/getting-started/intro.
 
 ## Appendix
 
@@ -219,16 +217,15 @@ To do this, click `Edit` in the chat window, which will open the `DIFF` of the f
 - To install Vale on Windows (using Chocolatey): `choco install vale`.
 - For more information on how to use Vale, create the `.vale.ini` file, and add styles, visit the [official documentation at vale.sh.](https://vale.sh/).
 
->[!IMPORTANT]
-> This guide wasn't tested with:
-  > - [Google Antigravity](https://antigravity.google/download).
-  > - [Copiloti CLI](https://github.com/features/copilot/cli?locale=pt-BR).
-  > - [Claude Code](https://www.claude.com/product/claude-code).
-  > - [Claude desktop](https://www.claude.com/download).
+**Important**: this guide wasn't tested with:
+- [Google Antigravity](https://antigravity.google/download).
+- [Copilot CLI](https://github.com/features/copilot/cli?locale=pt-BR).
+- [Claude Code](https://www.claude.com/product/claude-code).
+- [Claude desktop](https://www.claude.com/download).
 
 ## Appendix II
 
-Vale example for the WriteChoice (based on the files on Notion about style guide, processes and templates):
+Vale example for WriteChoice based on the files on Notion about the style guide, processes, and templates:
 
 ```txt
 StylesPath = styles
@@ -343,7 +340,7 @@ tokens:
 reference: "Style Guide > 2.2 Tone"
 ```
 
-When applicable, use the `ValidCallouts.yml` file for the callouts. The guide strictly defines five types of callouts: note, tip, info, warning, and danger. This rule helps to avoid typos (for example, `:::alert`) or unsupported types.
+When applicable, use the `ValidCallouts.yml` file for the callout elements. The guide strictly defines five types: note, tip, info, warning, and danger. This rule helps to avoid typos like `:::alert` or unsupported types.
 
 ```yaml
 extends: existence
@@ -358,6 +355,6 @@ reference: "Images & Visuals > Quick-Pick Matrix / Style Guide > 6. Links"
 
 ---
 
-Best regards :)
+Best regards 
 
-Please feel free to get in touch, open an issue, or talk with me in Slack.
+Feel free to get in contact, open an issue, or talk with the team in Slack.
