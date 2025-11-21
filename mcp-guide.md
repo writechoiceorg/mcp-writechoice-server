@@ -49,17 +49,36 @@ npm install
 npm run install:global
 ```
 
-This will create the MCP server. To run it and see if it is working correctly, type vale-cli.
+This will create the MCP server. To run it and see if it is working correctly, type `vale-cli`.
+
+![Vale CLI running on terminal](./images/vale-cli.png)
 
 ## Add to VSCode to use with GitHub Copilot
 
 To use GitHub Copilot in VSCode you need to add a `json` file containing the MCP settings:
+
 1. Press `ctrl + shift + p` on Windows or Linux or `cmd + shift + p` on macOS.
 2. In the search bar, type `> MCP: Add Server` and press `ENTER`.
+
+![Add to VSCode](./images/vs-code-1.png)
+
 3. Select the `Command (stdio)` option.
-4. Add the commando to run the Vale-MCP server: `vale-cli`
-5. Select `Global`.
-6. As soon as you confirm the Global option, the `mcp.json` will open. Paste the following:
+
+![Select the command type on VSCode](./images/vs-code-2.png)
+
+4. Add the command to run the Vale-MCP server: `vale-cli`
+
+![Add the commando to run the MCP](./images/vs-code-3.png)
+
+5. Add a `Server ID` to MCP Server:
+
+![Add the server id for the MCP](./images/vs-code-4.png)
+
+6. Select `Global`.
+
+![Add the scope to the MCP](./images/vs-code-5.png)
+
+7. As soon as you confirm the Global option, the `mcp.json` will open. Paste the following:
 
 ```json
 {
@@ -75,6 +94,8 @@ To use GitHub Copilot in VSCode you need to add a `json` file containing the MCP
 ```
 
 7. Save the file and click `Start` on the code.
+
+![Start the MCP server](./images/start-mcp.png)
 
 If everything goes well, the server will have the status `Running`.
 
@@ -126,6 +147,8 @@ This will allow you to use Vale-MCP via the command line. To do so, run gemini:
 gemini
 ```
 
+![Gemini first access screen](./images/gemini-1.png)
+
 Note that it loaded the Vale-MCP: `Using: 1 GEMINI.MD file | 1 MCP server`, which indicates that everything is working correctly.
 
 To use it via the command line, you must be in your documentation directory, for example `/Users/paulogpd/Documents/GitHub/global-ai-docs`, and run the `gemini` command from that directory.
@@ -138,13 +161,20 @@ Check the @/docs/ai-orchestration/how-to-add-model.mdx using Vale
 
 This will trigger Vale-MCP, which will check the file using the `.vale.ini` file and the style files you defined earlier.
 
+![Gemini screen with the command](./images/gemini-2.png)
+
 >[!NOTE]
 > In tests, verification using Gemini Code was slower than using GitHub Copilot.
 > Also, Gemini Code will ask for permission to run the command in the file.
 
 Note that Gemini Code presents an action plan to fix the file. 
 **Always review this plan.** 
+
+![Gemini lint result](./images/gemini-plan.png)
+
 After that, it will ask for authorization to modify the `.mdx` file.
+
+![Gemini correcting the file](./images/gemini-correct.png)
 
 ## Checking a file using VSCode
 
@@ -153,14 +183,24 @@ You can check the file directly from the VSCode chat window, whether it's GitHub
 ### GitHub Copilot
 
 Just open the GitHub Copilot chat and type check_file, and it will check the open file.
+
+![GitHub Copilot under VSCode](./images/copilot-1.png)
+
 You should review the assistant's plan. If everything is OK, you can ask it to correct itself using natural language. For example, with the command: `Correct the issues`.
+
+![GitHub Copilot under VSCode](./images/copilot-2.png)
+
 You can also use natural language and call Vale-MCP with the command `Check the file using Vale`. 
 Afterwards, the file will be displayed with the corrections that will be made. You can keep the agent's corrections (`keep`) or discard them (`Undo`).
+
+![Copilot review of the file](./images/copilot-review.png)
 
 ### Gemini Code Assistant
 
 After running the commands (as GitHub Copilot does), Gemini will offer the option to compare the files. 
 To do this, click `Edit` in the chat window, which will open the `DIFF` of the files. This will allow you to compare and choose what to keep and what to undo.
+
+![Gemini Code Assistant correcting the file](./images/gemini-code.png)
 
 ## References
 
@@ -319,4 +359,5 @@ reference: "Images & Visuals > Quick-Pick Matrix / Style Guide > 6. Links"
 ---
 
 Best regards :)
+
 Please feel free to get in touch, open an issue, or talk with me in Slack.
